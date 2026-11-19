@@ -1,0 +1,2 @@
+# shidosat
+shido index
