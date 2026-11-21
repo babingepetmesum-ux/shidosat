@@ -1261,7 +1261,8 @@
             }
         }
 
-        function disconnectMetaMask() {
+        async function disconnectMetaMask() {
+            try { localStorage.setItem(STORAGE_KEY + "_MM_DISCONNECTED", "1"); } catch (_) {}
             connectedMetaMaskAddress = null;
             browserProvider = null;
             browserSigner = null;
@@ -1274,19 +1275,46 @@
             document.getElementById('lblChainStatusText').innerText = "Mode Standar Aktif (Siap Koneksi Wallet)";
             if(document.getElementById('selfRegWallet')) document.getElementById('selfRegWallet').value = ""; 
 
-            showToast("MetaMask Terputus", "Sesi wallet telah diputuskan dari aplikasi.", "info");
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_revokePermissions',
+                        params: [{ eth_accounts: {} }]
+                    });
+                } catch (_) {}
+            }
+
+            showToast("MetaMask Terputus", "Koneksi wallet telah diputuskan sepenuhnya dari web dan ekstensi MetaMask.", "info");
             switchMode('guard');
         }
 
-        async function connectRealMetaMask(silent = false) {
+        async function connectRealMetaMask(silent = false, isAutoRestore = false) {
             if (typeof window.ethereum !== 'undefined') {
                 try {
-                    if (!silent) showToast("Meminta Akses MetaMask", "Silakan cek ekstensi / popup MetaMask Anda...", "info");
+                    if (!silent && !isAutoRestore) showToast("Meminta Akses MetaMask", "Silakan cek ekstensi / popup MetaMask Anda...", "info");
 
                     browserProvider = new ethers.BrowserProvider(window.ethereum);
-                    const accounts = await browserProvider.send('eth_requestAccounts', []);
+                    let accounts = [];
+                    if (isAutoRestore) {
+                        accounts = await browserProvider.send('eth_accounts', []);
+                    } else {
+                        const wasManuallyDisconnected = (localStorage.getItem(STORAGE_KEY + "_MM_DISCONNECTED") === "1");
+                        if (!silent && wasManuallyDisconnected) {
+                            const stillPermitted = await browserProvider.send('eth_accounts', []).catch(() => []);
+                            if (stillPermitted && stillPermitted.length > 0) {
+                                await window.ethereum.request({
+                                    method: 'wallet_requestPermissions',
+                                    params: [{ eth_accounts: {} }]
+                                });
+                            }
+                        }
+                        accounts = await browserProvider.send('eth_requestAccounts', []);
+                    }
 
                     if (accounts.length > 0) {
+                        if (!isAutoRestore) {
+                            try { localStorage.removeItem(STORAGE_KEY + "_MM_DISCONNECTED"); } catch (_) {}
+                        }
                         try {
                             await window.ethereum.request({
                                 method: 'wallet_switchEthereumChain',
@@ -2608,11 +2636,34 @@
             }
         }
 
+        async function restoreMetaMaskSessionOnLoad() {
+            if (typeof window.ethereum === 'undefined') return;
+            try {
+                if (localStorage.getItem(STORAGE_KEY + "_MM_DISCONNECTED") === "1") return;
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts && accounts.length > 0) {
+                    await connectRealMetaMask(false, true);
+                }
+            } catch (_) {}
+        }
+
+        if (typeof window.ethereum !== 'undefined' && window.ethereum.on) {
+            window.ethereum.on('accountsChanged', function(accounts) {
+                if (!accounts || accounts.length === 0) {
+                    if (connectedMetaMaskAddress) disconnectMetaMask();
+                } else if (!connectedMetaMaskAddress || accounts[0].toLowerCase() !== connectedMetaMaskAddress.toLowerCase()) {
+                    if (localStorage.getItem(STORAGE_KEY + "_MM_DISCONNECTED") === "1") return;
+                    connectRealMetaMask(false, true);
+                }
+            });
+        }
+
         window.onload = function() {
             populateGuardCompanySelect();
             updateClockUI();
             updateNetworkUI();
             initShidoRpcReader();
+            restoreMetaMaskSessionOnLoad();
         };
     </script>
 </body>
