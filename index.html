@@ -1015,41 +1015,136 @@
 
         const db = loadStateFromStorage();
 
-        const HIERARCHY_VAULT_KEY = STORAGE_KEY + "_HIERARCHY_VAULT_V1";
+        const HIERARCHY_VAULT_KEY = STORAGE_KEY + "_HIERARCHY_VAULT_V2";
+        const TOPIC_ZONE_SAVED = "0xa8f73aad14db7983f56d657ccff0c53e41350bd1630b0a709487989678095ad3";
+        const TOPIC_POST_SAVED = "0xd8d6b2891a266650fc11c6adb722024b6d71e98e38be25b41236e52309cb276b";
+        const TOPIC_NFC_SAVED  = "0x057fef857914beee16a73582933694c9ad98751be01f038064c34d3296cfbd2e";
+        const TOPIC_GUARD_SAVED = "0x624ac1ac55af9ffaa954d2bf0dd6df31d23516534c04f3ca5b62cfebbed35b38";
+
+        function ensureReadContractInstance() {
+            if (!rpcReadProvider) {
+                rpcReadProvider = new ethers.JsonRpcProvider(SHIDO_RPC_URL);
+            }
+            if (!rpcReadContract) {
+                rpcReadContract = new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, rpcReadProvider);
+            }
+            return rpcReadContract;
+        }
 
         function loadHierarchyVault() {
             try {
-                const raw = localStorage.getItem(HIERARCHY_VAULT_KEY);
+                const raw = localStorage.getItem(HIERARCHY_VAULT_KEY) || localStorage.getItem(STORAGE_KEY + "_HIERARCHY_VAULT_V1");
                 return raw ? JSON.parse(raw) : {};
             } catch (_) { return {}; }
         }
 
+        function normalizeCompanyHierarchyLinks(comp) {
+            if (!comp) return;
+            comp.zones = Array.isArray(comp.zones) ? comp.zones : [];
+            comp.posts = Array.isArray(comp.posts) ? comp.posts : [];
+            comp.nfcs = Array.isArray(comp.nfcs) ? comp.nfcs : [];
+            comp.guards = Array.isArray(comp.guards) ? comp.guards : [];
+
+            // Pastikan setiap Pos terhubung ke z.id yang valid di comp.zones
+            for (const p of comp.posts) {
+                if (!p) continue;
+                const pZoneHash = toBytes32(String(p.zoneId || "")).toLowerCase();
+                let zMatch = comp.zones.find(z => z.id === p.zoneId || toBytes32(z.id).toLowerCase() === pZoneHash);
+                if (!zMatch && p.zoneId) {
+                    zMatch = comp.zones[0] || null;
+                }
+                if (zMatch) p.zoneId = zMatch.id;
+            }
+
+            // Pastikan setiap NFC terhubung ke z.id dan p.id yang valid (buat Pos otomatis jika NFC disimpan tanpa transaksi savePost)
+            for (const n of comp.nfcs) {
+                if (!n) continue;
+                const nZoneHash = toBytes32(String(n.zoneId || "")).toLowerCase();
+                let zMatch = comp.zones.find(z => z.id === n.zoneId || toBytes32(z.id).toLowerCase() === nZoneHash);
+                if (!zMatch) {
+                    if (comp.zones.length === 0) {
+                        zMatch = { id: n.zoneId || `zone_${Date.now()}`, name: "Wilayah Utama" };
+                        comp.zones.push(zMatch);
+                    } else {
+                        zMatch = comp.zones[0];
+                    }
+                }
+                n.zoneId = zMatch.id;
+
+                const nPostHash = toBytes32(String(n.postId || "")).toLowerCase();
+                let pMatch = comp.posts.find(p => p.id === n.postId || toBytes32(p.id).toLowerCase() === nPostHash);
+                if (!pMatch) {
+                    let inferredPostName = "Pos 1";
+                    if (n.defaultTapNote && n.defaultTapNote.indexOf(",") !== -1) {
+                        const parts = n.defaultTapNote.split(",").map(s => s.trim());
+                        if (parts.length >= 2 && parts[1]) inferredPostName = parts[1];
+                    }
+                    pMatch = {
+                        id: n.postId || `post_${Date.now()}`,
+                        zoneId: zMatch.id,
+                        name: inferredPostName
+                    };
+                    comp.posts.push(pMatch);
+                } else {
+                    pMatch.zoneId = zMatch.id;
+                }
+                n.postId = pMatch.id;
+            }
+
+            // Pastikan setiap Guard terhubung ke z.id dan p.id yang valid
+            for (const g of comp.guards) {
+                if (!g) continue;
+                const gZoneHash = toBytes32(String(g.currentZoneId || "")).toLowerCase();
+                const zMatch = comp.zones.find(z => z.id === g.currentZoneId || toBytes32(z.id).toLowerCase() === gZoneHash) || comp.zones[0];
+                if (zMatch) g.currentZoneId = zMatch.id;
+                const gPostHash = toBytes32(String(g.currentPostId || "")).toLowerCase();
+                const pMatch = comp.posts.find(p => p.id === g.currentPostId || toBytes32(p.id).toLowerCase() === gPostHash) ||
+                               comp.posts.find(p => p.zoneId === g.currentZoneId) || comp.posts[0];
+                if (pMatch) g.currentPostId = pMatch.id;
+            }
+        }
+
         function saveHierarchyToVault(comp) {
             if (!comp) return;
-            const hasData = (Array.isArray(comp.zones) && comp.zones.length > 0) ||
-                            (Array.isArray(comp.posts) && comp.posts.length > 0) ||
-                            (Array.isArray(comp.nfcs) && comp.nfcs.length > 0) ||
-                            (Array.isArray(comp.guards) && comp.guards.length > 0);
+            normalizeCompanyHierarchyLinks(comp);
+            const hasData = (comp.zones.length > 0) || (comp.posts.length > 0) || (comp.nfcs.length > 0) || (comp.guards.length > 0);
             if (!hasData && !comp._allowEmptyVaultWrite) return;
             try {
                 const vault = loadHierarchyVault();
-                const snapshot = {
-                    id: comp.id,
-                    name: comp.name,
-                    onChainId: comp.onChainId || getCompanyBytes32(comp),
-                    adminWallet: comp.adminWallet || "",
-                    zones: comp.zones || [],
-                    posts: comp.posts || [],
-                    nfcs: comp.nfcs || [],
-                    guards: comp.guards || [],
-                    allHistoryLogs: comp.allHistoryLogs || []
-                };
                 const keys = [
                     String(comp.id || "").trim().toUpperCase(),
                     String(getCompanyBytes32(comp) || "").toLowerCase(),
                     String(comp.onChainId || "").toLowerCase(),
                     String(comp.adminWallet || "").toLowerCase()
                 ].filter(k => k && k !== "0xadminlocal" && k !== ethers.ZeroHash);
+
+                // Gabungkan dengan snapshot vault lama kecuali sedang menghapus sengaja (_allowEmptyVaultWrite)
+                const mergedZones = [...comp.zones];
+                const mergedPosts = [...comp.posts];
+                const mergedNfcs = [...comp.nfcs];
+                const mergedGuards = [...comp.guards];
+                if (!comp._allowEmptyVaultWrite) {
+                    for (const k of keys) {
+                        const prev = vault[k];
+                        if (prev) {
+                            mergeUniqueById(mergedZones, prev.zones, "id");
+                            mergeUniqueById(mergedPosts, prev.posts, "id");
+                            mergeUniqueById(mergedNfcs, prev.nfcs, "hash");
+                            mergeUniqueById(mergedGuards, prev.guards, "username");
+                        }
+                    }
+                }
+                const snapshot = {
+                    id: comp.id,
+                    name: comp.name,
+                    onChainId: comp.onChainId || getCompanyBytes32(comp),
+                    adminWallet: comp.adminWallet || "",
+                    zones: mergedZones,
+                    posts: mergedPosts,
+                    nfcs: mergedNfcs,
+                    guards: mergedGuards,
+                    allHistoryLogs: comp.allHistoryLogs || []
+                };
                 keys.forEach(k => { vault[k] = snapshot; });
                 localStorage.setItem(HIERARCHY_VAULT_KEY, JSON.stringify(vault));
             } catch (_) {}
@@ -1122,44 +1217,142 @@
                     mergeUniqueById(targetComp.guards, snap.guards, "username");
                 }
             }
+            normalizeCompanyHierarchyLinks(targetComp);
         }
 
-        async function queryEventsWithFallback(contractRef, filter) {
-            const ranges = [-40000, -10000, 0];
-            for (const r of ranges) {
-                try {
-                    const evs = r < 0 ? await contractRef.queryFilter(filter, r) : await contractRef.queryFilter(filter);
-                    if (Array.isArray(evs)) return evs;
-                } catch (_) {}
+        async function fetchCompanyHierarchyHashesFromChain(compBytes32) {
+            const zoneSet = new Set();
+            const postSet = new Set();
+            const nfcSet = new Set();
+            const guardSet = new Set();
+            const targetCompHex = String(compBytes32 || "").toLowerCase();
+
+            function ingestRawTopics(topics) {
+                if (!Array.isArray(topics) || topics.length < 3) return;
+                const t0 = String(topics[0] || "").toLowerCase();
+                const t1 = String(topics[1] || "").toLowerCase();
+                if (t1 !== targetCompHex) return;
+                const t2 = topics[2] ? String(topics[2]).toLowerCase() : null;
+                const t3 = topics[3] ? String(topics[3]).toLowerCase() : null;
+                if (t0 === TOPIC_ZONE_SAVED && t2) {
+                    zoneSet.add(t2);
+                } else if (t0 === TOPIC_POST_SAVED && t2 && t3) {
+                    zoneSet.add(t2);
+                    postSet.add(t3);
+                } else if (t0 === TOPIC_NFC_SAVED && t2 && t3) {
+                    postSet.add(t2);
+                    nfcSet.add(t3);
+                } else if (t0 === TOPIC_GUARD_SAVED && t2) {
+                    guardSet.add(t2);
+                }
             }
-            return [];
+
+            // Sumber 1: ShidoScan Blockscout API v1 (getLogs sejak blok pembuatan kontrak 48062600 hingga latest)
+            const explorerBases = ["https://shidoscan.net", "https://shidoscan.com"];
+            for (const base of explorerBases) {
+                try {
+                    const urlV1 = `${base}/api?module=logs&action=getLogs&fromBlock=48062600&toBlock=latest&address=${SHIDOGUARD_CONTRACT_ADDRESS}&topic1=${targetCompHex}`;
+                    const res = await fetch(urlV1);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && Array.isArray(data.result)) {
+                            data.result.forEach(log => ingestRawTopics(log.topics));
+                        }
+                    }
+                } catch (_) {}
+                if (zoneSet.size > 0 || nfcSet.size > 0 || guardSet.size > 0) break;
+            }
+
+            // Sumber 2: ShidoScan Blockscout API v2 (/api/v2/addresses/.../logs)
+            for (const base of explorerBases) {
+                try {
+                    const urlV2 = `${base}/api/v2/addresses/${SHIDOGUARD_CONTRACT_ADDRESS}/logs`;
+                    const res = await fetch(urlV2);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && Array.isArray(data.items)) {
+                            data.items.forEach(item => ingestRawTopics(item.topics));
+                        }
+                    }
+                } catch (_) {}
+                if (zoneSet.size > 0 || nfcSet.size > 0 || guardSet.size > 0) break;
+            }
+
+            // Sumber 3: Direct EVM RPC eth_getLogs pada rentang blok terbaru (menangkap transaksi baru 1 detik terakhir)
+            try {
+                const readContract = ensureReadContractInstance();
+                const latestBlock = await rpcReadProvider.getBlockNumber();
+                const stepSizes = [2000, 9000];
+                for (const step of stepSizes) {
+                    try {
+                        const fromBlk = Math.max(48062600, latestBlock - step);
+                        const rawLogs = await rpcReadProvider.getLogs({
+                            address: SHIDOGUARD_CONTRACT_ADDRESS,
+                            fromBlock: fromBlk,
+                            toBlock: latestBlock,
+                            topics: [null, targetCompHex]
+                        });
+                        if (Array.isArray(rawLogs)) {
+                            rawLogs.forEach(l => ingestRawTopics(l.topics));
+                        }
+                    } catch (_) {}
+                }
+            } catch (_) {}
+
+            return {
+                zoneHashes: [...zoneSet],
+                postHashes: [...postSet],
+                nfcHashes: [...nfcSet],
+                guardHashes: [...guardSet]
+            };
         }
 
-        async function recoverCompanyHierarchyFromChain(comp, customContract = null) {
-            const contractRef = customContract || rpcReadContract || (browserSigner ? new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, browserSigner) : null);
-            if (!comp || !contractRef) return;
+        async function recoverCompanyHierarchyFromChain(comp) {
+            const readContract = ensureReadContractInstance();
+            if (!comp || !readContract) return;
             const compBytes32 = getCompanyBytes32(comp);
             if (!compBytes32 || compBytes32 === ethers.ZeroHash) return;
 
             try {
-                const [zoneEvents, postEvents, nfcEvents, guardEvents] = await Promise.all([
-                    queryEventsWithFallback(contractRef, contractRef.filters.ZoneSaved(compBytes32)),
-                    queryEventsWithFallback(contractRef, contractRef.filters.PostSaved(compBytes32)),
-                    queryEventsWithFallback(contractRef, contractRef.filters.NFCPointSaved(compBytes32)),
-                    queryEventsWithFallback(contractRef, contractRef.filters.GuardSaved(compBytes32))
-                ]);
+                const { zoneHashes, postHashes, nfcHashes, guardHashes } = await fetchCompanyHierarchyHashesFromChain(compBytes32);
+                const allZoneHashes = new Set(zoneHashes.map(h => h.toLowerCase()));
+                const allPostHashes = new Set(postHashes.map(h => h.toLowerCase()));
+
+                // Baca data NFC & Guard terlebih dahulu untuk mengumpulkan zoneId dan postId induk yang direferensikan
+                const activeNfcStructs = [];
+                for (const nHash of nfcHashes) {
+                    try {
+                        const ptData = await readContract.companyNFCPoints(compBytes32, nHash);
+                        if (ptData && ptData.isActive) {
+                            activeNfcStructs.push({ nHash, ptData });
+                            if (ptData.zoneId && ptData.zoneId !== ethers.ZeroHash) allZoneHashes.add(String(ptData.zoneId).toLowerCase());
+                            if (ptData.postId && ptData.postId !== ethers.ZeroHash) allPostHashes.add(String(ptData.postId).toLowerCase());
+                        }
+                    } catch (_) {}
+                }
+
+                const activeGuardStructs = [];
+                for (const gHash of guardHashes) {
+                    try {
+                        const gData = await readContract.companyGuards(compBytes32, gHash);
+                        if (gData && gData.isActive) {
+                            activeGuardStructs.push({ gHash, gData });
+                            if (gData.currentZoneId && gData.currentZoneId !== ethers.ZeroHash) allZoneHashes.add(String(gData.currentZoneId).toLowerCase());
+                            if (gData.currentPostId && gData.currentPostId !== ethers.ZeroHash) allPostHashes.add(String(gData.currentPostId).toLowerCase());
+                        }
+                    } catch (_) {}
+                }
 
                 // 1. Pulihkan Wilayah (Zones) dari Smart Contract
-                const zoneHashes = [...new Set(zoneEvents.map(e => e.args?.zoneId).filter(Boolean))];
-                for (const zHash of zoneHashes) {
+                for (const zHash of allZoneHashes) {
                     try {
-                        const zData = await contractRef.companyZones(compBytes32, zHash);
+                        const zData = await readContract.companyZones(compBytes32, zHash);
                         if (zData && zData.isActive) {
                             const zName = hexBytesToStr(zData.encryptedZoneName) || `Wilayah ${zHash.slice(0, 6)}`;
                             const existingZ = comp.zones.find(z => toBytes32(z.id).toLowerCase() === zHash.toLowerCase());
                             if (!existingZ) {
                                 comp.zones.push({ id: zHash, name: zName });
-                            } else if (zName && existingZ.name.startsWith("Wilayah 0x")) {
+                            } else if (zName && (existingZ.name.startsWith("Wilayah 0x") || existingZ.name === "Wilayah Utama")) {
                                 existingZ.name = zName;
                             }
                         }
@@ -1167,134 +1360,122 @@
                 }
 
                 // 2. Pulihkan Pos (Posts) dari Smart Contract
-                const postHashes = [...new Set(postEvents.map(e => e.args?.postId).filter(Boolean))];
-                for (const pHash of postHashes) {
+                for (const pHash of allPostHashes) {
                     try {
-                        const pData = await contractRef.companyPosts(compBytes32, pHash);
+                        const pData = await readContract.companyPosts(compBytes32, pHash);
                         if (pData && pData.isActive) {
                             const pName = hexBytesToStr(pData.encryptedPostName) || `Pos ${pHash.slice(0, 6)}`;
-                            let matchedZone = comp.zones.find(z => toBytes32(z.id).toLowerCase() === String(pData.zoneId).toLowerCase());
-                            if (!matchedZone && pData.zoneId && pData.zoneId !== ethers.ZeroHash) {
-                                try {
-                                    const zInfo = await contractRef.companyZones(compBytes32, pData.zoneId);
-                                    const zLabel = (zInfo && hexBytesToStr(zInfo.encryptedZoneName)) || "Wilayah Utama";
-                                    matchedZone = { id: pData.zoneId, name: zLabel };
-                                    comp.zones.push(matchedZone);
-                                } catch (_) {
-                                    matchedZone = { id: pData.zoneId, name: "Wilayah Utama" };
-                                    comp.zones.push(matchedZone);
-                                }
-                            }
+                            const matchedZone = comp.zones.find(z => toBytes32(z.id).toLowerCase() === String(pData.zoneId).toLowerCase());
                             const resolvedZoneId = matchedZone ? matchedZone.id : (comp.zones[0]?.id || pData.zoneId);
                             const existingP = comp.posts.find(p => toBytes32(p.id).toLowerCase() === pHash.toLowerCase());
                             if (!existingP) {
                                 comp.posts.push({ id: pHash, zoneId: resolvedZoneId, name: pName });
                             } else {
                                 existingP.zoneId = resolvedZoneId;
-                                if (pName) existingP.name = pName;
+                                if (pName && pName !== "Pos 1") existingP.name = pName;
                             }
                         }
                     } catch (_) {}
                 }
 
-                // 3. Pulihkan Titik NFC (NFCPoints beserta Nama & UID) dari Smart Contract
-                const nfcHashes = [...new Set(nfcEvents.map(e => e.args?.nfcHash).filter(Boolean))];
-                for (const nHash of nfcHashes) {
-                    try {
-                        const ptData = await contractRef.companyNFCPoints(compBytes32, nHash);
-                        if (ptData && ptData.isActive) {
-                            const rawNfcStr = hexBytesToStr(ptData.encryptedNfcName);
-                            let nName = rawNfcStr || `Titik NFC ${nHash.slice(0, 6)}`;
-                            let nUid = nHash;
-                            if (rawNfcStr && rawNfcStr.startsWith("{")) {
-                                try {
-                                    const parsedNfc = JSON.parse(rawNfcStr);
-                                    if (parsedNfc && parsedNfc.name) nName = parsedNfc.name;
-                                    if (parsedNfc && parsedNfc.uid) nUid = parsedNfc.uid;
-                                } catch (_) {}
-                            }
-                            const defNote = hexBytesToStr(ptData.encryptedDefaultTapNote) || `${nName} Aman Baik`;
-                            let matchedZone = comp.zones.find(z => toBytes32(z.id).toLowerCase() === String(ptData.zoneId).toLowerCase());
-                            if (!matchedZone && ptData.zoneId && ptData.zoneId !== ethers.ZeroHash) {
-                                matchedZone = { id: ptData.zoneId, name: "Wilayah Utama" };
-                                comp.zones.push(matchedZone);
-                            }
-                            let matchedPost = comp.posts.find(p => toBytes32(p.id).toLowerCase() === String(ptData.postId).toLowerCase());
-                            if (!matchedPost && ptData.postId && ptData.postId !== ethers.ZeroHash) {
-                                matchedPost = { id: ptData.postId, zoneId: matchedZone ? matchedZone.id : (comp.zones[0]?.id || ptData.zoneId), name: "Pos 1" };
-                                comp.posts.push(matchedPost);
-                            }
-                            const resolvedZoneId = matchedZone ? matchedZone.id : (comp.zones[0]?.id || ptData.zoneId);
-                            const resolvedPostId = matchedPost ? matchedPost.id : (comp.posts[0]?.id || ptData.postId);
-                            const existingNfc = comp.nfcs.find(n => toBytes32(n.hash).toLowerCase() === nHash.toLowerCase());
-                            if (!existingNfc) {
-                                comp.nfcs.push({
-                                    hash: nUid,
-                                    zoneId: resolvedZoneId,
-                                    postId: resolvedPostId,
-                                    name: nName,
-                                    defaultTapNote: defNote,
-                                    dailyRecords: {}
-                                });
-                            } else {
-                                if (defNote) existingNfc.defaultTapNote = defNote;
-                                if (nName) existingNfc.name = nName;
-                            }
+                // 3. Pulihkan Titik NFC (beserta rekonstruksi Pos induk jika Pos belum tercatat via savePost)
+                for (const { nHash, ptData } of activeNfcStructs) {
+                    const rawNfcStr = hexBytesToStr(ptData.encryptedNfcName);
+                    let nName = rawNfcStr || `Titik NFC ${nHash.slice(0, 6)}`;
+                    let nUid = nHash;
+                    if (rawNfcStr && rawNfcStr.startsWith("{")) {
+                        try {
+                            const parsedNfc = JSON.parse(rawNfcStr);
+                            if (parsedNfc && parsedNfc.name) nName = parsedNfc.name;
+                            if (parsedNfc && parsedNfc.uid) nUid = parsedNfc.uid;
+                        } catch (_) {}
+                    }
+                    const defNote = hexBytesToStr(ptData.encryptedDefaultTapNote) || `${nName} Aman Baik`;
+                    let matchedZone = comp.zones.find(z => toBytes32(z.id).toLowerCase() === String(ptData.zoneId).toLowerCase());
+                    if (!matchedZone && ptData.zoneId && ptData.zoneId !== ethers.ZeroHash) {
+                        matchedZone = { id: ptData.zoneId, name: "Wilayah Utama" };
+                        comp.zones.push(matchedZone);
+                    }
+                    const resolvedZoneId = matchedZone ? matchedZone.id : (comp.zones[0]?.id || ptData.zoneId);
+
+                    let matchedPost = comp.posts.find(p => toBytes32(p.id).toLowerCase() === String(ptData.postId).toLowerCase());
+                    if (!matchedPost && ptData.postId && ptData.postId !== ethers.ZeroHash) {
+                        let inferredPostName = "Pos 1";
+                        if (defNote && defNote.indexOf(",") !== -1) {
+                            const parts = defNote.split(",").map(s => s.trim());
+                            if (parts.length >= 2 && parts[1]) inferredPostName = parts[1];
                         }
-                    } catch (_) {}
+                        matchedPost = { id: ptData.postId, zoneId: resolvedZoneId, name: inferredPostName };
+                        comp.posts.push(matchedPost);
+                    }
+                    const resolvedPostId = matchedPost ? matchedPost.id : (comp.posts[0]?.id || ptData.postId);
+
+                    const existingNfc = comp.nfcs.find(n => toBytes32(n.hash).toLowerCase() === nHash.toLowerCase());
+                    if (!existingNfc) {
+                        comp.nfcs.push({
+                            hash: nUid,
+                            zoneId: resolvedZoneId,
+                            postId: resolvedPostId,
+                            name: nName,
+                            defaultTapNote: defNote,
+                            dailyRecords: {}
+                        });
+                    } else {
+                        existingNfc.zoneId = resolvedZoneId;
+                        existingNfc.postId = resolvedPostId;
+                        if (defNote) existingNfc.defaultTapNote = defNote;
+                        if (nName) existingNfc.name = nName;
+                    }
                 }
 
-                // 4. Pulihkan Akun Sekuriti (Nama Satpam, Username & Password) dari Smart Contract
-                const guardHashes = [...new Set(guardEvents.map(e => e.args?.usernameHash).filter(Boolean))];
-                for (const gHash of guardHashes) {
-                    try {
-                        const gData = await contractRef.companyGuards(compBytes32, gHash);
-                        if (gData && gData.isActive) {
-                            const rawGuardStr = hexBytesToStr(gData.encryptedProfile);
-                            let gName = rawGuardStr || `Guard ${gHash.slice(0, 6)}`;
-                            let gUser = "";
-                            let gPass = "";
-                            if (rawGuardStr && rawGuardStr.startsWith("{")) {
-                                try {
-                                    const parsedG = JSON.parse(rawGuardStr);
-                                    if (parsedG && parsedG.name) gName = String(parsedG.name).trim();
-                                    if (parsedG && parsedG.username) gUser = String(parsedG.username).trim().toLowerCase();
-                                    if (parsedG && parsedG.pass) gPass = String(parsedG.pass).trim();
-                                } catch (_) {}
-                            }
-                            if (!gUser) {
-                                gUser = gName.toLowerCase().replace(/[^a-z0-9]/g, '') || gHash.slice(0, 8);
-                            }
-                            if (!gPass) {
-                                gPass = "123456";
-                            }
-                            const matchedZone = comp.zones.find(z => toBytes32(z.id).toLowerCase() === String(gData.currentZoneId).toLowerCase());
-                            const matchedPost = comp.posts.find(p => toBytes32(p.id).toLowerCase() === String(gData.currentPostId).toLowerCase());
-                            const existingG = comp.guards.find(g =>
-                                toBytes32(g.username).toLowerCase() === gHash.toLowerCase() ||
-                                (g.stealthAddress && gData.activeWallet && g.stealthAddress.toLowerCase() === String(gData.activeWallet).toLowerCase())
-                            );
-                            if (!existingG) {
-                                comp.guards.push({
-                                    username: gUser,
-                                    pass: gPass,
-                                    name: gName,
-                                    currentZoneId: matchedZone ? matchedZone.id : (comp.zones[0]?.id || ""),
-                                    currentPostId: matchedPost ? matchedPost.id : (comp.posts[0]?.id || ""),
-                                    stealthAddress: gData.activeWallet
-                                });
-                            } else {
-                                existingG.name = gName;
-                                if (rawGuardStr && rawGuardStr.startsWith("{")) {
-                                    existingG.username = gUser;
-                                    existingG.pass = gPass;
-                                }
-                                if (matchedZone) existingG.currentZoneId = matchedZone.id;
-                                if (matchedPost) existingG.currentPostId = matchedPost.id;
-                            }
+                // 4. Pulihkan Akun Sekuriti (Nama Satpam, Username & Password)
+                for (const { gHash, gData } of activeGuardStructs) {
+                    const rawGuardStr = hexBytesToStr(gData.encryptedProfile);
+                    let gName = rawGuardStr || `Guard ${gHash.slice(0, 6)}`;
+                    let gUser = "";
+                    let gPass = "";
+                    if (rawGuardStr && rawGuardStr.startsWith("{")) {
+                        try {
+                            const parsedG = JSON.parse(rawGuardStr);
+                            if (parsedG && parsedG.name) gName = String(parsedG.name).trim();
+                            if (parsedG && parsedG.username) gUser = String(parsedG.username).trim().toLowerCase();
+                            if (parsedG && parsedG.pass) gPass = String(parsedG.pass).trim();
+                        } catch (_) {}
+                    }
+                    if (!gUser) {
+                        gUser = gName.toLowerCase().replace(/[^a-z0-9]/g, '') || gHash.slice(0, 8);
+                    }
+                    if (!gPass) {
+                        gPass = "123456";
+                    }
+                    const matchedZone = comp.zones.find(z => toBytes32(z.id).toLowerCase() === String(gData.currentZoneId).toLowerCase());
+                    const matchedPost = comp.posts.find(p => toBytes32(p.id).toLowerCase() === String(gData.currentPostId).toLowerCase());
+                    const existingG = comp.guards.find(g =>
+                        toBytes32(g.username).toLowerCase() === gHash.toLowerCase() ||
+                        (g.stealthAddress && gData.activeWallet && g.stealthAddress.toLowerCase() === String(gData.activeWallet).toLowerCase())
+                    );
+                    if (!existingG) {
+                        comp.guards.push({
+                            username: gUser,
+                            pass: gPass,
+                            name: gName,
+                            currentZoneId: matchedZone ? matchedZone.id : (comp.zones[0]?.id || ""),
+                            currentPostId: matchedPost ? matchedPost.id : (comp.posts[0]?.id || ""),
+                            stealthAddress: gData.activeWallet
+                        });
+                    } else {
+                        existingG.name = gName;
+                        if (rawGuardStr && rawGuardStr.startsWith("{")) {
+                            existingG.username = gUser;
+                            existingG.pass = gPass;
                         }
-                    } catch (_) {}
+                        if (matchedZone) existingG.currentZoneId = matchedZone.id;
+                        if (matchedPost) existingG.currentPostId = matchedPost.id;
+                    }
                 }
+
+                normalizeCompanyHierarchyLinks(comp);
+                saveStateToStorage();
             } catch (_) {}
         }
 
@@ -1541,8 +1722,12 @@
             const comp = db.companies[compId];
             if (!comp) return;
             db.activeAdminCompanyId = comp.id;
-            db.activeAdminSelectedZoneId = comp.zones[0]?.id || null;
-            db.activeAdminSelectedPostId = comp.posts.find(p => p.zoneId === db.activeAdminSelectedZoneId)?.id || null;
+            normalizeCompanyHierarchyLinks(comp);
+            const preferredZone = comp.zones.find(z => comp.posts.some(p => p.zoneId === z.id)) || comp.zones[0];
+            db.activeAdminSelectedZoneId = preferredZone?.id || null;
+            const preferredPost = comp.posts.find(p => p.zoneId === db.activeAdminSelectedZoneId && comp.nfcs.some(n => n.postId === p.id)) ||
+                                  comp.posts.find(p => p.zoneId === db.activeAdminSelectedZoneId) || comp.posts[0];
+            db.activeAdminSelectedPostId = preferredPost?.id || null;
             
             switchMode('admin');
             initAdminPanel();
@@ -2436,7 +2621,7 @@
         async function adminDeleteZone(id) {
             const c = db.companies[db.activeAdminCompanyId];
             if (!c) return;
-            c.zones = c.zones.filter(z => z.id !== id);
+            c._allowEmptyVaultWrite = true; c.zones = c.zones.filter(z => z.id !== id);
             c.posts = c.posts.filter(p => p.zoneId !== id);
             c.nfcs = c.nfcs.filter(n => n.zoneId !== id);
             saveStateToStorage();
@@ -2485,7 +2670,7 @@
             const c = db.companies[db.activeAdminCompanyId];
             if (!c) return;
             const p = c.posts.find(x => x.id === id);
-            c.posts = c.posts.filter(x => x.id !== id);
+            c._allowEmptyVaultWrite = true; c.posts = c.posts.filter(x => x.id !== id);
             c.nfcs = c.nfcs.filter(n => n.postId !== id);
             saveStateToStorage();
             initAdminPanel();
@@ -2561,7 +2746,7 @@
             const c = db.companies[db.activeAdminCompanyId];
             if (!c) return;
             const n = c.nfcs.find(x => x.hash === hash);
-            c.nfcs = c.nfcs.filter(x => x.hash !== hash);
+            c._allowEmptyVaultWrite = true; c.nfcs = c.nfcs.filter(x => x.hash !== hash);
             saveStateToStorage();
             initAdminPanel();
 
@@ -2636,7 +2821,7 @@
 
         async function adminDeleteGuard(u) {
             const comp = db.companies[db.activeAdminCompanyId];
-            comp.guards = comp.guards.filter(g => g.username !== u);
+            comp._allowEmptyVaultWrite = true; comp.guards = comp.guards.filter(g => g.username !== u);
             saveStateToStorage();
             initAdminPanel();
 
