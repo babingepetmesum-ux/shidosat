@@ -666,6 +666,12 @@
         const STORAGE_KEY = "SHIDOGUARD_ENTERPRISE_PRODUCTION_V3"; 
 
         const SHIDOGUARD_ABI = [
+        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"companyId","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"usernameHash","type":"bytes32"},{"indexed":false,"internalType":"address","name":"activeWallet","type":"address"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"GuardSaved","type":"event"},
+        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"companyId","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"postId","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"nfcHash","type":"bytes32"},{"indexed":false,"internalType":"bytes","name":"defaultNote","type":"bytes"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"NFCPointSaved","type":"event"},
+        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"companyId","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"postId","type":"bytes32"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"PostSaved","type":"event"},
+        {"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"companyId","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"ZoneSaved","type":"event"},
+        {"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companyPosts","outputs":[{"internalType":"bytes32","name":"postId","type":"bytes32"},{"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"internalType":"bytes","name":"encryptedPostName","type":"bytes"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
+        {"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companyZones","outputs":[{"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"internalType":"bytes","name":"encryptedZoneName","type":"bytes"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
             {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"adminToCompany","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
             {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"address","name":"_newAdmin","type":"address"}],"name":"changeCompanyAdmin","outputs":[],"stateMutability":"nonpayable","type":"function"},
             {"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companies","outputs":[{"internalType":"bytes32","name":"companyId","type":"bytes32"},{"internalType":"bytes","name":"encryptedName","type":"bytes"},{"internalType":"address","name":"admin","type":"address"},{"internalType":"uint256","name":"gasTankBalance","type":"uint256"},{"internalType":"uint256","name":"maxGasPriceRefund","type":"uint256"},{"internalType":"uint256","name":"initialGuardFloat","type":"uint256"},{"components":[{"internalType":"uint8","name":"shiftMode","type":"uint8"},{"internalType":"uint16","name":"shift1Start","type":"uint16"},{"internalType":"uint16","name":"shift2Start","type":"uint16"},{"internalType":"uint16","name":"shift3Start","type":"uint16"},{"internalType":"int8","name":"timezoneOffset","type":"int8"}],"internalType":"struct ShidoGuardEnterprise.ShiftRule","name":"shiftRule","type":"tuple"},{"internalType":"uint256","name":"totalGuards","type":"uint256"},{"internalType":"uint256","name":"totalLogs","type":"uint256"},{"internalType":"bool","name":"isRegistered","type":"bool"}],"stateMutability":"view","type":"function"},
@@ -1009,8 +1015,294 @@
 
         const db = loadStateFromStorage();
 
+        const HIERARCHY_VAULT_KEY = STORAGE_KEY + "_HIERARCHY_VAULT_V1";
+
+        function loadHierarchyVault() {
+            try {
+                const raw = localStorage.getItem(HIERARCHY_VAULT_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch (_) { return {}; }
+        }
+
+        function saveHierarchyToVault(comp) {
+            if (!comp) return;
+            const hasData = (Array.isArray(comp.zones) && comp.zones.length > 0) ||
+                            (Array.isArray(comp.posts) && comp.posts.length > 0) ||
+                            (Array.isArray(comp.nfcs) && comp.nfcs.length > 0) ||
+                            (Array.isArray(comp.guards) && comp.guards.length > 0);
+            if (!hasData && !comp._allowEmptyVaultWrite) return;
+            try {
+                const vault = loadHierarchyVault();
+                const snapshot = {
+                    id: comp.id,
+                    name: comp.name,
+                    onChainId: comp.onChainId || getCompanyBytes32(comp),
+                    adminWallet: comp.adminWallet || "",
+                    zones: comp.zones || [],
+                    posts: comp.posts || [],
+                    nfcs: comp.nfcs || [],
+                    guards: comp.guards || [],
+                    allHistoryLogs: comp.allHistoryLogs || []
+                };
+                const keys = [
+                    String(comp.id || "").trim().toUpperCase(),
+                    String(getCompanyBytes32(comp) || "").toLowerCase(),
+                    String(comp.onChainId || "").toLowerCase(),
+                    String(comp.adminWallet || "").toLowerCase()
+                ].filter(k => k && k !== "0xadminlocal" && k !== ethers.ZeroHash);
+                keys.forEach(k => { vault[k] = snapshot; });
+                localStorage.setItem(HIERARCHY_VAULT_KEY, JSON.stringify(vault));
+            } catch (_) {}
+        }
+
+        function mergeUniqueById(targetArr, sourceArr, keyField) {
+            if (!Array.isArray(sourceArr)) return;
+            const existingKeys = new Set(targetArr.map(item => String(item[keyField] || "").toLowerCase()));
+            const existingHashes = new Set(targetArr.map(item => toBytes32(String(item[keyField] || "")).toLowerCase()));
+            for (const item of sourceArr) {
+                if (!item || !item[keyField]) continue;
+                const rawK = String(item[keyField]).toLowerCase();
+                const hashK = toBytes32(String(item[keyField])).toLowerCase();
+                if (!existingKeys.has(rawK) && !existingHashes.has(hashK)) {
+                    targetArr.push(item);
+                    existingKeys.add(rawK);
+                    existingHashes.add(hashK);
+                }
+            }
+        }
+
+        function restoreCompanyFromVaultAndDuplicates(targetComp, mappedCompId, walletAddr, decodedName) {
+            if (!targetComp) return;
+            targetComp.zones = Array.isArray(targetComp.zones) ? targetComp.zones : [];
+            targetComp.posts = Array.isArray(targetComp.posts) ? targetComp.posts : [];
+            targetComp.nfcs = Array.isArray(targetComp.nfcs) ? targetComp.nfcs : [];
+            targetComp.guards = Array.isArray(targetComp.guards) ? targetComp.guards : [];
+            targetComp.allHistoryLogs = Array.isArray(targetComp.allHistoryLogs) ? targetComp.allHistoryLogs : [];
+
+            const normChainId = String(mappedCompId || getCompanyBytes32(targetComp) || "").toLowerCase();
+            const normWallet = String(walletAddr || targetComp.adminWallet || "").toLowerCase();
+            const normName = String(decodedName || targetComp.name || "").trim().toLowerCase();
+
+            for (const [compKey, other] of Object.entries(db.companies)) {
+                if (!other || other === targetComp) continue;
+                const otherChain = String(getCompanyBytes32(other) || "").toLowerCase();
+                const otherOnChain = String(other.onChainId || "").toLowerCase();
+                const otherWallet = String(other.adminWallet || "").toLowerCase();
+                const otherName = String(other.name || "").trim().toLowerCase();
+                const isSame = (normChainId && (otherChain === normChainId || otherOnChain === normChainId)) ||
+                               (normWallet && normWallet !== "0xadminlocal" && otherWallet === normWallet) ||
+                               (normName && otherName === normName) ||
+                               (otherWallet === "0xadminlocal" && (other.zones?.length > 0 || other.posts?.length > 0 || other.nfcs?.length > 0));
+                if (isSame) {
+                    mergeUniqueById(targetComp.zones, other.zones, "id");
+                    mergeUniqueById(targetComp.posts, other.posts, "id");
+                    mergeUniqueById(targetComp.nfcs, other.nfcs, "hash");
+                    mergeUniqueById(targetComp.guards, other.guards, "username");
+                    if (Array.isArray(other.allHistoryLogs) && targetComp.allHistoryLogs.length === 0) {
+                        targetComp.allHistoryLogs = other.allHistoryLogs;
+                    }
+                    if (compKey.startsWith("PT_") && compKey !== targetComp.id) {
+                        delete db.companies[compKey];
+                    }
+                }
+            }
+
+            const vault = loadHierarchyVault();
+            const lookupKeys = [
+                String(targetComp.id || "").trim().toUpperCase(),
+                normChainId,
+                normWallet
+            ].filter(Boolean);
+            for (const k of lookupKeys) {
+                const snap = vault[k];
+                if (snap) {
+                    mergeUniqueById(targetComp.zones, snap.zones, "id");
+                    mergeUniqueById(targetComp.posts, snap.posts, "id");
+                    mergeUniqueById(targetComp.nfcs, snap.nfcs, "hash");
+                    mergeUniqueById(targetComp.guards, snap.guards, "username");
+                }
+            }
+        }
+
+        async function queryEventsWithFallback(contractRef, filter) {
+            const ranges = [-40000, -10000, 0];
+            for (const r of ranges) {
+                try {
+                    const evs = r < 0 ? await contractRef.queryFilter(filter, r) : await contractRef.queryFilter(filter);
+                    if (Array.isArray(evs)) return evs;
+                } catch (_) {}
+            }
+            return [];
+        }
+
+        async function recoverCompanyHierarchyFromChain(comp, customContract = null) {
+            const contractRef = customContract || rpcReadContract || (browserSigner ? new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, browserSigner) : null);
+            if (!comp || !contractRef) return;
+            const compBytes32 = getCompanyBytes32(comp);
+            if (!compBytes32 || compBytes32 === ethers.ZeroHash) return;
+
+            try {
+                const [zoneEvents, postEvents, nfcEvents, guardEvents] = await Promise.all([
+                    queryEventsWithFallback(contractRef, contractRef.filters.ZoneSaved(compBytes32)),
+                    queryEventsWithFallback(contractRef, contractRef.filters.PostSaved(compBytes32)),
+                    queryEventsWithFallback(contractRef, contractRef.filters.NFCPointSaved(compBytes32)),
+                    queryEventsWithFallback(contractRef, contractRef.filters.GuardSaved(compBytes32))
+                ]);
+
+                // 1. Pulihkan Wilayah (Zones) dari Smart Contract
+                const zoneHashes = [...new Set(zoneEvents.map(e => e.args?.zoneId).filter(Boolean))];
+                for (const zHash of zoneHashes) {
+                    try {
+                        const zData = await contractRef.companyZones(compBytes32, zHash);
+                        if (zData && zData.isActive) {
+                            const zName = hexBytesToStr(zData.encryptedZoneName) || `Wilayah ${zHash.slice(0, 6)}`;
+                            const existingZ = comp.zones.find(z => toBytes32(z.id).toLowerCase() === zHash.toLowerCase());
+                            if (!existingZ) {
+                                comp.zones.push({ id: zHash, name: zName });
+                            } else if (zName && existingZ.name.startsWith("Wilayah 0x")) {
+                                existingZ.name = zName;
+                            }
+                        }
+                    } catch (_) {}
+                }
+
+                // 2. Pulihkan Pos (Posts) dari Smart Contract
+                const postHashes = [...new Set(postEvents.map(e => e.args?.postId).filter(Boolean))];
+                for (const pHash of postHashes) {
+                    try {
+                        const pData = await contractRef.companyPosts(compBytes32, pHash);
+                        if (pData && pData.isActive) {
+                            const pName = hexBytesToStr(pData.encryptedPostName) || `Pos ${pHash.slice(0, 6)}`;
+                            let matchedZone = comp.zones.find(z => toBytes32(z.id).toLowerCase() === String(pData.zoneId).toLowerCase());
+                            if (!matchedZone && pData.zoneId && pData.zoneId !== ethers.ZeroHash) {
+                                try {
+                                    const zInfo = await contractRef.companyZones(compBytes32, pData.zoneId);
+                                    const zLabel = (zInfo && hexBytesToStr(zInfo.encryptedZoneName)) || "Wilayah Utama";
+                                    matchedZone = { id: pData.zoneId, name: zLabel };
+                                    comp.zones.push(matchedZone);
+                                } catch (_) {
+                                    matchedZone = { id: pData.zoneId, name: "Wilayah Utama" };
+                                    comp.zones.push(matchedZone);
+                                }
+                            }
+                            const resolvedZoneId = matchedZone ? matchedZone.id : (comp.zones[0]?.id || pData.zoneId);
+                            const existingP = comp.posts.find(p => toBytes32(p.id).toLowerCase() === pHash.toLowerCase());
+                            if (!existingP) {
+                                comp.posts.push({ id: pHash, zoneId: resolvedZoneId, name: pName });
+                            } else {
+                                existingP.zoneId = resolvedZoneId;
+                                if (pName) existingP.name = pName;
+                            }
+                        }
+                    } catch (_) {}
+                }
+
+                // 3. Pulihkan Titik NFC (NFCPoints beserta Nama & UID) dari Smart Contract
+                const nfcHashes = [...new Set(nfcEvents.map(e => e.args?.nfcHash).filter(Boolean))];
+                for (const nHash of nfcHashes) {
+                    try {
+                        const ptData = await contractRef.companyNFCPoints(compBytes32, nHash);
+                        if (ptData && ptData.isActive) {
+                            const rawNfcStr = hexBytesToStr(ptData.encryptedNfcName);
+                            let nName = rawNfcStr || `Titik NFC ${nHash.slice(0, 6)}`;
+                            let nUid = nHash;
+                            if (rawNfcStr && rawNfcStr.startsWith("{")) {
+                                try {
+                                    const parsedNfc = JSON.parse(rawNfcStr);
+                                    if (parsedNfc && parsedNfc.name) nName = parsedNfc.name;
+                                    if (parsedNfc && parsedNfc.uid) nUid = parsedNfc.uid;
+                                } catch (_) {}
+                            }
+                            const defNote = hexBytesToStr(ptData.encryptedDefaultTapNote) || `${nName} Aman Baik`;
+                            let matchedZone = comp.zones.find(z => toBytes32(z.id).toLowerCase() === String(ptData.zoneId).toLowerCase());
+                            if (!matchedZone && ptData.zoneId && ptData.zoneId !== ethers.ZeroHash) {
+                                matchedZone = { id: ptData.zoneId, name: "Wilayah Utama" };
+                                comp.zones.push(matchedZone);
+                            }
+                            let matchedPost = comp.posts.find(p => toBytes32(p.id).toLowerCase() === String(ptData.postId).toLowerCase());
+                            if (!matchedPost && ptData.postId && ptData.postId !== ethers.ZeroHash) {
+                                matchedPost = { id: ptData.postId, zoneId: matchedZone ? matchedZone.id : (comp.zones[0]?.id || ptData.zoneId), name: "Pos 1" };
+                                comp.posts.push(matchedPost);
+                            }
+                            const resolvedZoneId = matchedZone ? matchedZone.id : (comp.zones[0]?.id || ptData.zoneId);
+                            const resolvedPostId = matchedPost ? matchedPost.id : (comp.posts[0]?.id || ptData.postId);
+                            const existingNfc = comp.nfcs.find(n => toBytes32(n.hash).toLowerCase() === nHash.toLowerCase());
+                            if (!existingNfc) {
+                                comp.nfcs.push({
+                                    hash: nUid,
+                                    zoneId: resolvedZoneId,
+                                    postId: resolvedPostId,
+                                    name: nName,
+                                    defaultTapNote: defNote,
+                                    dailyRecords: {}
+                                });
+                            } else {
+                                if (defNote) existingNfc.defaultTapNote = defNote;
+                                if (nName) existingNfc.name = nName;
+                            }
+                        }
+                    } catch (_) {}
+                }
+
+                // 4. Pulihkan Akun Sekuriti (Nama Satpam, Username & Password) dari Smart Contract
+                const guardHashes = [...new Set(guardEvents.map(e => e.args?.usernameHash).filter(Boolean))];
+                for (const gHash of guardHashes) {
+                    try {
+                        const gData = await contractRef.companyGuards(compBytes32, gHash);
+                        if (gData && gData.isActive) {
+                            const rawGuardStr = hexBytesToStr(gData.encryptedProfile);
+                            let gName = rawGuardStr || `Guard ${gHash.slice(0, 6)}`;
+                            let gUser = "";
+                            let gPass = "";
+                            if (rawGuardStr && rawGuardStr.startsWith("{")) {
+                                try {
+                                    const parsedG = JSON.parse(rawGuardStr);
+                                    if (parsedG && parsedG.name) gName = String(parsedG.name).trim();
+                                    if (parsedG && parsedG.username) gUser = String(parsedG.username).trim().toLowerCase();
+                                    if (parsedG && parsedG.pass) gPass = String(parsedG.pass).trim();
+                                } catch (_) {}
+                            }
+                            if (!gUser) {
+                                gUser = gName.toLowerCase().replace(/[^a-z0-9]/g, '') || gHash.slice(0, 8);
+                            }
+                            if (!gPass) {
+                                gPass = "123456";
+                            }
+                            const matchedZone = comp.zones.find(z => toBytes32(z.id).toLowerCase() === String(gData.currentZoneId).toLowerCase());
+                            const matchedPost = comp.posts.find(p => toBytes32(p.id).toLowerCase() === String(gData.currentPostId).toLowerCase());
+                            const existingG = comp.guards.find(g =>
+                                toBytes32(g.username).toLowerCase() === gHash.toLowerCase() ||
+                                (g.stealthAddress && gData.activeWallet && g.stealthAddress.toLowerCase() === String(gData.activeWallet).toLowerCase())
+                            );
+                            if (!existingG) {
+                                comp.guards.push({
+                                    username: gUser,
+                                    pass: gPass,
+                                    name: gName,
+                                    currentZoneId: matchedZone ? matchedZone.id : (comp.zones[0]?.id || ""),
+                                    currentPostId: matchedPost ? matchedPost.id : (comp.posts[0]?.id || ""),
+                                    stealthAddress: gData.activeWallet
+                                });
+                            } else {
+                                existingG.name = gName;
+                                if (rawGuardStr && rawGuardStr.startsWith("{")) {
+                                    existingG.username = gUser;
+                                    existingG.pass = gPass;
+                                }
+                                if (matchedZone) existingG.currentZoneId = matchedZone.id;
+                                if (matchedPost) existingG.currentPostId = matchedPost.id;
+                            }
+                        }
+                    } catch (_) {}
+                }
+            } catch (_) {}
+        }
+
         function saveStateToStorage() {
             try {
+                for (const comp of Object.values(db.companies || {})) {
+                    saveHierarchyToVault(comp);
+                }
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
             } catch (_) {}
         }
@@ -1139,6 +1431,9 @@
                             comp.shiftRule.shift2Start = minutesToTimeStr(cData.shiftRule.shift2Start);
                             comp.shiftRule.shift3Start = minutesToTimeStr(cData.shiftRule.shift3Start);
                         }
+
+                        restoreCompanyFromVaultAndDuplicates(comp, compBytes32, comp.adminWallet, comp.name);
+                        await recoverCompanyHierarchyFromChain(comp, rpcReadContract);
 
                         let currentDayIdx = 0n;
                         try {
@@ -1369,10 +1664,20 @@
                                 const cData = await contract.companies(mappedCompId);
                                 const decodedName = hexBytesToStr(cData.encryptedName) || `Perusahaan ${mappedCompId.slice(0, 8)}`;
 
-                                matchedComp = Object.values(db.companies).find(
-                                    c => getCompanyBytes32(c).toLowerCase() === mappedCompId.toLowerCase() ||
-                                         c.adminWallet.toLowerCase() === connectedMetaMaskAddress.toLowerCase()
+                                const allComps = Object.values(db.companies);
+                                const candidates = allComps.filter(c =>
+                                    getCompanyBytes32(c).toLowerCase() === mappedCompId.toLowerCase() ||
+                                    (c.onChainId && String(c.onChainId).toLowerCase() === mappedCompId.toLowerCase()) ||
+                                    (c.adminWallet && c.adminWallet.toLowerCase() === connectedMetaMaskAddress.toLowerCase()) ||
+                                    (decodedName && c.name && c.name.trim().toLowerCase() === decodedName.trim().toLowerCase()) ||
+                                    (c.adminWallet === "0xAdminLocal" && (c.zones?.length > 0 || c.posts?.length > 0 || c.nfcs?.length > 0 || c.guards?.length > 0))
                                 );
+                                candidates.sort((a, b) => {
+                                    const scoreA = (a.zones?.length || 0) * 10 + (a.posts?.length || 0) * 5 + (a.nfcs?.length || 0) * 3 + (a.guards?.length || 0) * 4 + (!String(a.id).startsWith("PT_") ? 2 : 0);
+                                    const scoreB = (b.zones?.length || 0) * 10 + (b.posts?.length || 0) * 5 + (b.nfcs?.length || 0) * 3 + (b.guards?.length || 0) * 4 + (!String(b.id).startsWith("PT_") ? 2 : 0);
+                                    return scoreB - scoreA;
+                                });
+                                matchedComp = candidates[0] || null;
 
                                 if (!matchedComp) {
                                     const cleanKey = `PT_${mappedCompId.slice(2, 8).toUpperCase()}`;
@@ -1401,6 +1706,9 @@
                                     if (decodedName) matchedComp.name = decodedName;
                                     matchedComp.gasTank = Number(ethers.formatEther(cData.gasTankBalance));
                                 }
+
+                                restoreCompanyFromVaultAndDuplicates(matchedComp, mappedCompId, connectedMetaMaskAddress, decodedName);
+                                await recoverCompanyHierarchyFromChain(matchedComp, contract);
                             }
 
                             saveStateToStorage();
@@ -2243,7 +2551,7 @@
             const onChainCompId = await ensureCompanyOnChainReady(c);
             await trySendOnChainTx(
                 "saveNFCPoint",
-                [onChainCompId, toBytes32(zoneId), toBytes32(postId), toBytes32(hash), strToHexBytes(name), strToHexBytes(defNote), true],
+                [onChainCompId, toBytes32(zoneId), toBytes32(postId), toBytes32(hash), strToHexBytes(JSON.stringify({ name, uid: hash })), strToHexBytes(defNote), true],
                 "0",
                 `Tambah NFC ${name} (${hash})`
             );
@@ -2319,7 +2627,7 @@
             const onChainCompId = await ensureCompanyOnChainReady(comp);
             await trySendOnChainTx(
                 "saveGuard",
-                [onChainCompId, toBytes32(username), stealthWallet.address, strToHexBytes(name), toBytes32(zId), toBytes32(pId), true],
+                [onChainCompId, toBytes32(username), stealthWallet.address, strToHexBytes(JSON.stringify({ name, username, pass, compId: comp.id })), toBytes32(zId), toBytes32(pId), true],
                 "0",
                 `Simpan Sekuriti ${name} (${username}) & Subsidi 0.02 SHIDO`
             );
@@ -2486,19 +2794,24 @@
                 } catch (e) {}
             }
 
+            const prevComp = db.companies[id] || Object.values(db.companies).find(c =>
+                (c.onChainId && String(c.onChainId).toLowerCase() === String(onChainCompId).toLowerCase()) ||
+                (wallet && c.adminWallet && c.adminWallet.toLowerCase() === wallet.toLowerCase())
+            );
             db.companies[id] = {
                 id,
                 onChainId: onChainCompId,
                 name,
                 adminWallet: wallet || "0xAdminLocal",
-                gasTank: dep - fee,
-                shiftRule: { mode: shiftMode, shift1Start: "06:00", shift2Start: shiftMode === 2 ? "17:00" : "14:00", shift3Start: "22:00" },
-                zones: [],
-                posts: [],
-                nfcs: [],
-                guards: [],
-                allHistoryLogs: []
+                gasTank: (prevComp && prevComp.gasTank > 0 && dep === 0) ? prevComp.gasTank : (dep - fee),
+                shiftRule: prevComp?.shiftRule || { mode: shiftMode, shift1Start: "06:00", shift2Start: shiftMode === 2 ? "17:00" : "14:00", shift3Start: "22:00" },
+                zones: Array.isArray(prevComp?.zones) ? [...prevComp.zones] : [],
+                posts: Array.isArray(prevComp?.posts) ? [...prevComp.posts] : [],
+                nfcs: Array.isArray(prevComp?.nfcs) ? [...prevComp.nfcs] : [],
+                guards: Array.isArray(prevComp?.guards) ? [...prevComp.guards] : [],
+                allHistoryLogs: Array.isArray(prevComp?.allHistoryLogs) ? [...prevComp.allHistoryLogs] : []
             };
+            restoreCompanyFromVaultAndDuplicates(db.companies[id], onChainCompId, wallet, name);
 
             saveStateToStorage();
             openCompanyAdminPanel(id);
