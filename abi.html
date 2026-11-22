@@ -9,39 +9,8 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
         "internalType": "address",
-        "name": "oldAdmin",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newAdmin",
-        "type": "address"
-      }
-    ],
-    "name": "CompanyAdminChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "admin",
+        "name": "adminWallet",
         "type": "address"
       },
       {
@@ -65,9 +34,9 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -96,9 +65,9 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -115,9 +84,9 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "indexed": true,
@@ -146,9 +115,9 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "indexed": true,
@@ -177,9 +146,9 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "indexed": true,
@@ -214,9 +183,9 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "indexed": true,
@@ -331,9 +300,9 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "indexed": true,
@@ -362,9 +331,9 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "indexed": false,
@@ -405,9 +374,9 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "indexed": true,
@@ -433,59 +402,17 @@
         "type": "address"
       }
     ],
-    "name": "adminToCompany",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "_newAdmin",
-        "type": "address"
-      }
-    ],
-    "name": "changeCompanyAdmin",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
     "name": "companies",
     "outputs": [
       {
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "adminWallet",
+        "type": "address"
       },
       {
         "internalType": "bytes",
         "name": "encryptedName",
         "type": "bytes"
-      },
-      {
-        "internalType": "address",
-        "name": "admin",
-        "type": "address"
       },
       {
         "internalType": "uint256",
@@ -556,9 +483,33 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "companyGuardList",
+    "outputs": [
+      {
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       },
       {
         "internalType": "bytes32",
@@ -610,9 +561,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "address",
         "name": "",
-        "type": "bytes32"
+        "type": "address"
       },
       {
         "internalType": "bytes32",
@@ -659,9 +610,57 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "companyNfcList",
+    "outputs": [
+      {
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "companyPostList",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       },
       {
         "internalType": "bytes32",
@@ -698,9 +697,33 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "companyZoneList",
+    "outputs": [
+      {
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       },
       {
         "internalType": "bytes32",
@@ -730,13 +753,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      }
-    ],
+    "inputs": [],
     "name": "depositGasTank",
     "outputs": [],
     "stateMutability": "payable",
@@ -744,11 +761,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      },
       {
         "internalType": "bytes32",
         "name": "_nfcHash",
@@ -768,9 +780,85 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "_adminWallet",
+        "type": "address"
+      }
+    ],
+    "name": "getCompanyGuardUsernames",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_adminWallet",
+        "type": "address"
+      }
+    ],
+    "name": "getCompanyNfcIds",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_adminWallet",
+        "type": "address"
+      }
+    ],
+    "name": "getCompanyPostIds",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_adminWallet",
+        "type": "address"
+      }
+    ],
+    "name": "getCompanyZoneIds",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_adminWallet",
+        "type": "address"
       },
       {
         "internalType": "uint256",
@@ -792,9 +880,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "_adminWallet",
+        "type": "address"
       },
       {
         "internalType": "bytes32",
@@ -847,11 +935,6 @@
         "internalType": "uint8",
         "name": "role",
         "type": "uint8"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "companyId",
-        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -860,9 +943,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "address",
         "name": "",
-        "type": "bytes32"
+        "type": "address"
       },
       {
         "internalType": "bytes32",
@@ -935,19 +1018,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      },
-      {
         "internalType": "bytes",
         "name": "_encryptedName",
         "type": "bytes"
-      },
-      {
-        "internalType": "address",
-        "name": "_adminWallet",
-        "type": "address"
       },
       {
         "internalType": "uint8",
@@ -982,11 +1055,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      },
       {
         "internalType": "bytes32",
         "name": "_usernameHash",
@@ -1027,11 +1095,6 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
         "name": "_zoneId",
         "type": "bytes32"
       },
@@ -1070,11 +1133,6 @@
     "inputs": [
       {
         "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
         "name": "_zoneId",
         "type": "bytes32"
       },
@@ -1101,11 +1159,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      },
       {
         "internalType": "bytes32",
         "name": "_zoneId",
@@ -1143,33 +1196,33 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "_adminWallet",
+        "type": "address"
       },
       {
         "internalType": "bytes32[]",
-        "name": "_hardwareScannedNfcHashes",
+        "name": "_hwNfcHashes",
         "type": "bytes32[]"
       },
       {
         "internalType": "bytes32[]",
-        "name": "_manualSelectedNfcHashes",
+        "name": "_manNfcHashes",
         "type": "bytes32[]"
       },
       {
         "internalType": "bool[]",
-        "name": "_isPhysicallyTappedList",
+        "name": "_isTappedList",
         "type": "bool[]"
       },
       {
         "internalType": "bytes[]",
-        "name": "_untappedReasons",
+        "name": "_reasons",
         "type": "bytes[]"
       },
       {
         "internalType": "uint256[]",
-        "name": "_verifiedTapTimes",
+        "name": "_tapTimes",
         "type": "uint256[]"
       }
     ],
@@ -1181,18 +1234,18 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "_adminWallet",
+        "type": "address"
+      },
+      {
         "internalType": "bytes32",
-        "name": "_companyId",
+        "name": "_hwNfcHash",
         "type": "bytes32"
       },
       {
         "internalType": "bytes32",
-        "name": "_hardwareScannedNfcHash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "_manualSelectedNfcHash",
+        "name": "_manNfcHash",
         "type": "bytes32"
       },
       {
@@ -1202,7 +1255,7 @@
       },
       {
         "internalType": "bytes",
-        "name": "_untappedReasonByGuard",
+        "name": "_reason",
         "type": "bytes"
       }
     ],
@@ -1253,11 +1306,6 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      },
-      {
         "internalType": "uint8",
         "name": "_shiftMode",
         "type": "uint8"
@@ -1291,9 +1339,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "address",
         "name": "",
-        "type": "bytes32"
+        "type": "address"
       },
       {
         "internalType": "address",
@@ -1314,11 +1362,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "_companyId",
-        "type": "bytes32"
-      },
       {
         "internalType": "uint256",
         "name": "_amount",
