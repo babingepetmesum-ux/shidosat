@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 /**
- * @title ShidoGuardEnterprise (V3.1 - Enterprise Masterpiece)
- * @notice Sistem Patroli NFC Tersentralisasi Berbasis Wallet.
- * @dev Menerapkan pola C-E-I (Checks-Effects-Interactions), perlindungan OOG (Out of Gas), 
- *      serta perbaikan casting tipe data int256 pada kalkulasi zona waktu.
+- @title ShidoGuardEnterprise (V3.1 - Enterprise Masterpiece)
+- @notice Sistem Patroli NFC Tersentralisasi Berbasis Wallet.
+- @dev Menerapkan pola C-E-I (Checks-Effects-Interactions), perlindungan OOG (Out of Gas), 
+-      serta perbaikan casting tipe data int256 pada kalkulasi zona waktu.
  */
 contract ShidoGuardEnterprise {
 
@@ -22,7 +22,7 @@ contract ShidoGuardEnterprise {
 
     struct Company {
         address adminWallet;
-        bytes encryptedName;
+        string name;
         uint256 gasTankBalance;
         uint256 maxGasPriceRefund;
         uint256 initialGuardFloat;
@@ -34,14 +34,14 @@ contract ShidoGuardEnterprise {
 
     struct Zone {
         bytes32 zoneId;
-        bytes encryptedZoneName;
+        string zoneName;
         bool isActive;
     }
 
     struct Post {
         bytes32 postId;
         bytes32 zoneId;
-        bytes encryptedPostName;
+        string postName;
         bool isActive;
     }
 
@@ -49,8 +49,8 @@ contract ShidoGuardEnterprise {
         bytes32 nfcHash;
         bytes32 zoneId;
         bytes32 postId;
-        bytes encryptedNfcName;
-        bytes encryptedDefaultTapNote;
+        string nfcName;
+        string defaultTapNote;
         bool isActive;
     }
 
@@ -60,33 +60,17 @@ contract ShidoGuardEnterprise {
         bytes32 lastGuardHash;
         uint8 shiftIndex;
         bool isPhysicallyTapped;
-        bytes encryptedNote;
+        string note;
     }
 
     struct GuardAccount {
         bytes32 usernameHash;
         address activeWallet;
-        bytes encryptedProfile;
+        string profile;
         bytes32 currentZoneId;
         bytes32 currentPostId;
         uint256 lastVerifiedTapTime;
         bool isActive;
-    }
-
-    struct PatrolLog {
-        uint256 logId;
-        uint256 dayIndex;
-        bytes32 usernameHash;
-        address guardWallet;
-        bytes32 zoneId;
-        bytes32 postId;
-        bytes32 nfcHash;
-        bool isPhysicallyTapped;
-        bytes encryptedNote;
-        bool isOfflineSynced;
-        uint8 shiftIndex;
-        uint256 actualTapTime;
-        uint256 blockRecordedTime;
     }
 
     // ==========================================
@@ -110,8 +94,6 @@ contract ShidoGuardEnterprise {
     mapping(address => mapping(bytes32 => GuardAccount)) public companyGuards;
     mapping(address => mapping(address => bytes32)) public walletToUsernameHash;
 
-    mapping(address => PatrolLog[]) private companyPatrolLogs;
-
     mapping(address => bytes32[]) public companyZoneList;
     mapping(address => bytes32[]) public companyPostList;
     mapping(address => bytes32[]) public companyNfcList;
@@ -128,7 +110,7 @@ contract ShidoGuardEnterprise {
     event ShiftRuleUpdated(address indexed adminWallet, uint8 shiftMode, uint16 s1, uint16 s2, uint16 s3, int8 tz);
     event ZoneSaved(address indexed adminWallet, bytes32 indexed zoneId, bool isActive);
     event PostSaved(address indexed adminWallet, bytes32 indexed zoneId, bytes32 indexed postId, bool isActive);
-    event NFCPointSaved(address indexed adminWallet, bytes32 indexed postId, bytes32 indexed nfcHash, bytes defaultNote, bool isActive);
+    event NFCPointSaved(address indexed adminWallet, bytes32 indexed postId, bytes32 indexed nfcHash, string defaultNote, bool isActive);
     event GuardSaved(address indexed adminWallet, bytes32 indexed usernameHash, address activeWallet, bool isActive);
     event GuardAutoRolled(address indexed adminWallet, bytes32 indexed usernameHash, bytes32 newZoneId, bytes32 newPostId);
     event PatrolRecorded(address indexed adminWallet, uint256 indexed logId, uint256 indexed dayIndex, bytes32 usernameHash, bytes32 zoneId, bytes32 postId, bytes32 recordedNfcHash, bool isPhysicallyTapped, bool isOfflineSynced, uint8 shiftIndex, uint256 actualTapTime, uint256 gasRefunded);
@@ -187,7 +169,7 @@ contract ShidoGuardEnterprise {
     // 6. CORE LOGIC (C-E-I PATTERN TRICTLY APPLIED)
     // ==========================================
     function registerCompanyWithWallet(
-        bytes calldata _encryptedName,
+        string calldata _name,
         uint8 _shiftMode,
         uint16 _shift1Start,
         uint16 _shift2Start,
@@ -209,7 +191,7 @@ contract ShidoGuardEnterprise {
 
         companies[msg.sender] = Company({
             adminWallet: msg.sender,
-            encryptedName: _encryptedName,
+            name: _name,
             gasTankBalance: netGas,
             maxGasPriceRefund: 50 gwei,
             initialGuardFloat: 0.02 ether,
@@ -276,7 +258,7 @@ contract ShidoGuardEnterprise {
     // ==========================================
     // 7. CRUD HIERARKI (DENGAN ZERO-CHECK)
     // ==========================================
-    function saveZone(bytes32 _zoneId, bytes calldata _name, bool _isActive) external onlyCompanyAdmin {
+    function saveZone(bytes32 _zoneId, string calldata _name, bool _isActive) external onlyCompanyAdmin {
         require(_zoneId != bytes32(0), "ShidoGuard: ID Zone tidak valid");
         if (companyZones[msg.sender][_zoneId].zoneId == bytes32(0)) {
             companyZoneList[msg.sender].push(_zoneId);
@@ -285,7 +267,7 @@ contract ShidoGuardEnterprise {
         emit ZoneSaved(msg.sender, _zoneId, _isActive);
     }
 
-    function savePost(bytes32 _zoneId, bytes32 _postId, bytes calldata _name, bool _isActive) external onlyCompanyAdmin {
+    function savePost(bytes32 _zoneId, bytes32 _postId, string calldata _name, bool _isActive) external onlyCompanyAdmin {
         require(_postId != bytes32(0), "ShidoGuard: ID Post tidak valid");
         if (companyPosts[msg.sender][_postId].postId == bytes32(0)) {
             companyPostList[msg.sender].push(_postId);
@@ -298,8 +280,8 @@ contract ShidoGuardEnterprise {
         bytes32 _zoneId,
         bytes32 _postId,
         bytes32 _nfcHash,
-        bytes calldata _encryptedNfcName,
-        bytes calldata _encryptedDefaultTapNote,
+        string calldata _nfcName,
+        string calldata _defaultTapNote,
         bool _isActive
     ) external onlyCompanyAdmin {
         require(_nfcHash != bytes32(0), "ShidoGuard: Hash NFC tidak valid");
@@ -310,31 +292,32 @@ contract ShidoGuardEnterprise {
             nfcHash: _nfcHash,
             zoneId: _zoneId,
             postId: _postId,
-            encryptedNfcName: _encryptedNfcName,
-            encryptedDefaultTapNote: _encryptedDefaultTapNote,
+            nfcName: _nfcName,
+            defaultTapNote: _defaultTapNote,
             isActive: _isActive
         });
-        emit NFCPointSaved(msg.sender, _postId, _nfcHash, _encryptedDefaultTapNote, _isActive);
+        emit NFCPointSaved(msg.sender, _postId, _nfcHash, _defaultTapNote, _isActive);
     }
 
-    function editNfcDefaultNote(bytes32 _nfcHash, bytes calldata _newDefaultTapNote) external onlyCompanyAdmin {
+    function editNfcDefaultNote(bytes32 _nfcHash, string calldata _newDefaultTapNote) external onlyCompanyAdmin {
         NFCPoint storage pt = companyNFCPoints[msg.sender][_nfcHash];
         require(pt.nfcHash != bytes32(0), "ShidoGuard: NFC tidak valid");
-        pt.encryptedDefaultTapNote = _newDefaultTapNote;
+        pt.defaultTapNote = _newDefaultTapNote;
         if (nfcDailyStatus[msg.sender][_nfcHash].isPhysicallyTapped) {
-            nfcDailyStatus[msg.sender][_nfcHash].encryptedNote = _newDefaultTapNote;
+            nfcDailyStatus[msg.sender][_nfcHash].note = _newDefaultTapNote;
         }
     }
 
     function saveGuard(
         bytes32 _usernameHash,
         address _guardWallet,
-        bytes calldata _encryptedProfile,
+        string calldata _profile,
         bytes32 _initialZoneId,
         bytes32 _initialPostId,
         bool _isActive
     ) external nonReentrant onlyCompanyAdmin {
         require(_usernameHash != bytes32(0), "ShidoGuard: Hash username kosong");
+        require(_guardWallet != address(0), "ShidoGuard: Wallet guard tidak boleh 0x0");
         
         if (companyGuards[msg.sender][_usernameHash].usernameHash == bytes32(0)) {
             companyGuardList[msg.sender].push(_usernameHash);
@@ -353,7 +336,7 @@ contract ShidoGuardEnterprise {
 
         g.usernameHash = _usernameHash;
         g.activeWallet = _guardWallet;
-        g.encryptedProfile = _encryptedProfile;
+        g.profile = _profile;
         g.currentZoneId = _initialZoneId;
         g.currentPostId = _initialPostId;
         g.isActive = _isActive;
@@ -410,7 +393,7 @@ contract ShidoGuardEnterprise {
         bytes32 _hardwareNfcHash,
         bytes32 _manualNfcHash,
         bool _isPhysicallyTapped,
-        bytes calldata _note,
+        string memory _note,
         bool _isOfflineSynced,
         uint256 _verifiedTapTime,
         uint256 _gasRefunded
@@ -419,7 +402,7 @@ contract ShidoGuardEnterprise {
         NFCPoint memory pt = companyNFCPoints[_adminWallet][finalNfc];
         require(pt.isActive, "ShidoGuard: Titik NFC tidak aktif/dihapus");
 
-        bytes memory finalNote = _isPhysicallyTapped ? pt.encryptedDefaultTapNote : _note;
+        string memory finalNote = _isPhysicallyTapped ? pt.defaultTapNote : _note;
         GuardAccount storage guard = companyGuards[_adminWallet][_uHash];
         
         uint256 safeTime = (!_isOfflineSynced || _verifiedTapTime == 0 || _verifiedTapTime > block.timestamp) ? block.timestamp : _verifiedTapTime;
@@ -434,9 +417,8 @@ contract ShidoGuardEnterprise {
 
         uint256 dayIdx = getCurrentDayIndex(_adminWallet, safeTime);
         uint8 shiftIdx = _detectShift(_adminWallet, safeTime);
-        uint256 logId = companyPatrolLogs[_adminWallet].length;
+        uint256 logId = companies[_adminWallet].totalLogs;
 
-        companyPatrolLogs[_adminWallet].push(PatrolLog(logId, dayIdx, _uHash, msg.sender, pt.zoneId, pt.postId, finalNfc, _isPhysicallyTapped, finalNote, _isOfflineSynced, shiftIdx, safeTime, block.timestamp));
         nfcDailyStatus[_adminWallet][finalNfc] = NFCDailyStatus(dayIdx, safeTime, _uHash, shiftIdx, _isPhysicallyTapped, finalNote);
         companies[_adminWallet].totalLogs++;
 
@@ -446,17 +428,15 @@ contract ShidoGuardEnterprise {
     function _refundGas(address _adminWallet, uint256 _startGas) internal {
         Company storage comp = companies[_adminWallet];
         uint256 gasUsed = _startGas - gasleft() + GAS_OVERHEAD;
-        uint256 cost = gasUsed * (tx.gasprice > comp.maxGasPriceRefund ? comp.maxGasPriceRefund : tx.gasprice);
-        
-        if (msg.sender.balance < comp.initialGuardFloat) {
-            uint256 topup = comp.initialGuardFloat - msg.sender.balance;
-            if (topup > cost) cost = topup;
-        }
+        uint256 effectiveGasPrice = tx.gasprice > comp.maxGasPriceRefund ? comp.maxGasPriceRefund : tx.gasprice;
+        uint256 cost = gasUsed * effectiveGasPrice;
         
         if (comp.gasTankBalance >= cost && cost > 0) {
             comp.gasTankBalance -= cost;
             (bool ok, ) = payable(msg.sender).call{value: cost}("");
-            if (!ok) comp.gasTankBalance += cost; 
+            if (!ok) {
+                comp.gasTankBalance += cost; 
+            }
         }
     }
 
@@ -465,7 +445,7 @@ contract ShidoGuardEnterprise {
         bytes32 _hwNfcHash, 
         bytes32 _manNfcHash, 
         bool _isPhysicallyTapped, 
-        bytes calldata _reason
+        string calldata _reason
     ) external nonReentrant onlyActiveGuard(_adminWallet) {
         uint256 startGas = gasleft();
         _recordPatrolInternal(_adminWallet, walletToUsernameHash[_adminWallet][msg.sender], _hwNfcHash, _manNfcHash, _isPhysicallyTapped, _reason, false, block.timestamp, 0);
@@ -477,7 +457,7 @@ contract ShidoGuardEnterprise {
         bytes32[] calldata _hwNfcHashes, 
         bytes32[] calldata _manNfcHashes, 
         bool[] calldata _isTappedList, 
-        bytes[] calldata _reasons, 
+        string[] calldata _reasons, 
         uint256[] calldata _tapTimes
     ) external nonReentrant onlyActiveGuard(_adminWallet) {
         uint256 startGas = gasleft();
@@ -494,7 +474,7 @@ contract ShidoGuardEnterprise {
         _refundGas(_adminWallet, startGas);
     }
 
-    function getGuardTodayPostReport(address _adminWallet, bytes32 _nfcHash) external view onlyActiveGuard(_adminWallet) returns (bool hasReportToday, bool isPhysicallyTapped, uint8 shiftIndex, uint256 tapTime, bytes memory encryptedNote) {
+    function getGuardTodayPostReport(address _adminWallet, bytes32 _nfcHash) external view onlyActiveGuard(_adminWallet) returns (bool hasReportToday, bool isPhysicallyTapped, uint8 shiftIndex, uint256 tapTime, string memory note) {
         bytes32 uHash = walletToUsernameHash[_adminWallet][msg.sender];
         GuardAccount memory guard = companyGuards[_adminWallet][uHash];
         NFCPoint memory pt = companyNFCPoints[_adminWallet][_nfcHash];
@@ -504,7 +484,7 @@ contract ShidoGuardEnterprise {
         NFCDailyStatus memory st = nfcDailyStatus[_adminWallet][_nfcHash];
 
         if (st.lastTapTime == 0 || st.lastDayIndex < todayIdx) return (false, false, 0, 0, "");
-        return (true, st.isPhysicallyTapped, st.shiftIndex, st.lastTapTime, st.encryptedNote);
+        return (true, st.isPhysicallyTapped, st.shiftIndex, st.lastTapTime, st.note);
     }
 
     // ==========================================
