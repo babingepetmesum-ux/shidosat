@@ -36,7 +36,6 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-            <!-- SHORTCUT MANUAL BYPASS (HANYA MUNCUL JIKA TERVERIFIKASI) -->
             <div id="navShortcutPanel" class="hidden flex items-center gap-2 mr-2 border-r border-slate-700 pr-3">
                 <button id="btnShortcutAdmin" onclick="forceNav('admin')" class="hidden px-3 py-1.5 bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-lg text-xs font-bold hover:bg-sky-500/30 transition shadow" title="Dasbor Perusahaan">
                     <i class="fa-solid fa-user-tie mr-1"></i>Masuk Panel Admin
@@ -68,9 +67,9 @@
                 </span>
                 <span class="text-slate-400 font-mono">
                     Contract:
-                    <a href="https://shidoscan.com/address/0x9AA4A88A6007c18f37fc9e20e473F35c9A5f79C7" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline font-bold">0x9AA4...79C7</a>
+                    <a href="https://shidoscan.com/address/0x65146508EfDa2C94932a74F60feCA18B517d1859" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:underline font-bold">0x6514...1859</a>
                 </span>
-                <button onclick="copyToClipboard('0x9AA4A88A6007c18f37fc9e20e473F35c9A5f79C7')" class="text-slate-400 hover:text-white transition" title="Salin Alamat Smart Contract">
+                <button onclick="copyToClipboard('0x65146508EfDa2C94932a74F60feCA18B517d1859')" class="text-slate-400 hover:text-white transition" title="Salin Alamat Smart Contract">
                     <i class="fa-regular fa-copy"></i>
                 </button>
             </div>
@@ -235,7 +234,6 @@
 
         <!-- 2. PANEL ADMIN PERUSAHAAN (TERISOLASI) -->
         <section id="viewAdmin" class="space-y-6 hidden">
-            <!-- Banner Perusahaan -->
             <div class="bg-gradient-to-r from-shido-900 to-slate-900 border border-shido-500/40 p-5 rounded-2xl flex flex-wrap justify-between items-center gap-4">
                 <div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -319,7 +317,7 @@
                 <div class="bg-shido-card p-5 rounded-2xl border border-slate-800 space-y-3">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-sm text-sky-400"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i>Arsip Laporan Lintas Hari (Bebas Urutan)</h4>
-                        <span class="text-[11px] text-slate-400">Tersimpan di Blockchain</span>
+                        <span class="text-[11px] text-slate-400">Terbaca via Events Blockchain</span>
                     </div>
                     <div class="overflow-x-auto max-h-64 overflow-y-auto">
                         <table class="w-full text-left text-xs">
@@ -599,7 +597,7 @@
             <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
                 <div>
                     <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-cube text-sky-400 mr-1.5"></i>Riwayat Transaksi Blockchain</h3>
-                    <p class="text-[11px] text-slate-400 font-mono">Target Contract: 0x9AA4A88A6007c18f37fc9e20e473F35c9A5f79C7</p>
+                    <p class="text-[11px] text-slate-400 font-mono">Target Contract: 0x65146508EfDa2C94932a74F60feCA18B517d1859</p>
                 </div>
                 <button onclick="closeTxHistoryModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -612,38 +610,61 @@
 
     <!-- JAVASCRIPT CORE ENGINE -->
     <script>
-        const SHIDOGUARD_CONTRACT_ADDRESS = "0x9AA4A88A6007c18f37fc9e20e473F35c9A5f79C7";
+        const SHIDOGUARD_CONTRACT_ADDRESS = "0x65146508EfDa2C94932a74F60feCA18B517d1859";
         const SHIDO_CHAIN_ID_HEX = "0x2330";
         const SHIDO_RPC_URL = "https://evm.shidoscan.com";
         const SHIDO_EXPLORER_URL = "https://shidoscan.com";
         const STORAGE_KEY = "SHIDOGUARD_ENTERPRISE_PRODUCTION_V3"; 
 
         const SHIDOGUARD_ABI = [
-            {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"adminToCompany","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"address","name":"_newAdmin","type":"address"}],"name":"changeCompanyAdmin","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companies","outputs":[{"internalType":"bytes32","name":"companyId","type":"bytes32"},{"internalType":"bytes","name":"encryptedName","type":"bytes"},{"internalType":"address","name":"admin","type":"address"},{"internalType":"uint256","name":"gasTankBalance","type":"uint256"},{"internalType":"uint256","name":"maxGasPriceRefund","type":"uint256"},{"internalType":"uint256","name":"initialGuardFloat","type":"uint256"},{"components":[{"internalType":"uint8","name":"shiftMode","type":"uint8"},{"internalType":"uint16","name":"shift1Start","type":"uint16"},{"internalType":"uint16","name":"shift2Start","type":"uint16"},{"internalType":"uint16","name":"shift3Start","type":"uint16"},{"internalType":"int8","name":"timezoneOffset","type":"int8"}],"internalType":"struct ShidoGuardEnterprise.ShiftRule","name":"shiftRule","type":"tuple"},{"internalType":"uint256","name":"totalGuards","type":"uint256"},{"internalType":"uint256","name":"totalLogs","type":"uint256"},{"internalType":"bool","name":"isRegistered","type":"bool"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companyGuards","outputs":[{"internalType":"bytes32","name":"usernameHash","type":"bytes32"},{"internalType":"address","name":"activeWallet","type":"address"},{"internalType":"bytes","name":"encryptedProfile","type":"bytes"},{"internalType":"bytes32","name":"currentZoneId","type":"bytes32"},{"internalType":"bytes32","name":"currentPostId","type":"bytes32"},{"internalType":"uint256","name":"lastVerifiedTapTime","type":"uint256"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companyNFCPoints","outputs":[{"internalType":"bytes32","name":"nfcHash","type":"bytes32"},{"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"internalType":"bytes32","name":"postId","type":"bytes32"},{"internalType":"bytes","name":"encryptedNfcName","type":"bytes"},{"internalType":"bytes","name":"encryptedDefaultTapNote","type":"bytes"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"}],"name":"depositGasTank","outputs":[],"stateMutability":"payable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"bytes32","name":"_nfcHash","type":"bytes32"},{"internalType":"bytes","name":"_newDefaultTapNote","type":"bytes"}],"name":"editNfcDefaultNote","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"uint256","name":"_timestamp","type":"uint256"}],"name":"getCurrentDayIndex","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"bytes32","name":"_nfcHash","type":"bytes32"}],"name":"getGuardTodayPostReport","outputs":[{"internalType":"bool","name":"hasReportToday","type":"bool"},{"internalType":"bool","name":"isPhysicallyTapped","type":"bool"},{"internalType":"uint8","name":"shiftIndex","type":"uint8"},{"internalType":"uint256","name":"tapTime","type":"uint256"},{"internalType":"bytes","name":"encryptedNote","type":"bytes"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"nfcDailyStatus","outputs":[{"internalType":"uint256","name":"lastDayIndex","type":"uint256"},{"internalType":"uint256","name":"lastTapTime","type":"uint256"},{"internalType":"bytes32","name":"lastGuardHash","type":"bytes32"},{"internalType":"uint8","name":"shiftIndex","type":"uint8"},{"internalType":"bool","name":"isPhysicallyTapped","type":"bool"},{"internalType":"bytes","name":"encryptedNote","type":"bytes"}],"stateMutability":"view","type":"function"},
+            {"inputs":[],"stateMutability":"nonpayable","type":"constructor"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":false,"internalType":"uint256","name":"netGas","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"}],"name":"CompanyRegistered","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":false,"internalType":"uint256","name":"netAdded","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"fee","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"totalBalance","type":"uint256"}],"name":"GasTankDeposited","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"GasTankWithdrawn","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":true,"internalType":"bytes32","name":"usernameHash","type":"bytes32"},{"indexed":false,"internalType":"bytes32","name":"newZoneId","type":"bytes32"},{"indexed":false,"internalType":"bytes32","name":"newPostId","type":"bytes32"}],"name":"GuardAutoRolled","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":true,"internalType":"bytes32","name":"usernameHash","type":"bytes32"},{"indexed":false,"internalType":"address","name":"activeWallet","type":"address"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"GuardSaved","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":true,"internalType":"bytes32","name":"postId","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"nfcHash","type":"bytes32"},{"indexed":false,"internalType":"string","name":"defaultNote","type":"string"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"NFCPointSaved","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":true,"internalType":"uint256","name":"logId","type":"uint256"},{"indexed":true,"internalType":"uint256","name":"dayIndex","type":"uint256"},{"indexed":false,"internalType":"bytes32","name":"usernameHash","type":"bytes32"},{"indexed":false,"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"indexed":false,"internalType":"bytes32","name":"postId","type":"bytes32"},{"indexed":false,"internalType":"bytes32","name":"recordedNfcHash","type":"bytes32"},{"indexed":false,"internalType":"bool","name":"isPhysicallyTapped","type":"bool"},{"indexed":false,"internalType":"bool","name":"isOfflineSynced","type":"bool"},{"indexed":false,"internalType":"uint8","name":"shiftIndex","type":"uint8"},{"indexed":false,"internalType":"uint256","name":"actualTapTime","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"gasRefunded","type":"uint256"}],"name":"PatrolRecorded","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"oldBps","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"newBps","type":"uint256"}],"name":"PlatformFeeUpdated","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"oldOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"PlatformOwnerTransferred","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":true,"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"postId","type":"bytes32"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"PostSaved","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":false,"internalType":"uint8","name":"shiftMode","type":"uint8"},{"indexed":false,"internalType":"uint16","name":"s1","type":"uint16"},{"indexed":false,"internalType":"uint16","name":"s2","type":"uint16"},{"indexed":false,"internalType":"uint16","name":"s3","type":"uint16"},{"indexed":false,"internalType":"int8","name":"tz","type":"int8"}],"name":"ShiftRuleUpdated","type":"event"},
+            {"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"adminWallet","type":"address"},{"indexed":true,"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"indexed":false,"internalType":"bool","name":"isActive","type":"bool"}],"name":"ZoneSaved","type":"event"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"companies","outputs":[{"internalType":"address","name":"adminWallet","type":"address"},{"internalType":"string","name":"name","type":"string"},{"internalType":"uint256","name":"gasTankBalance","type":"uint256"},{"internalType":"uint256","name":"maxGasPriceRefund","type":"uint256"},{"internalType":"uint256","name":"initialGuardFloat","type":"uint256"},{"components":[{"internalType":"uint8","name":"shiftMode","type":"uint8"},{"internalType":"uint16","name":"shift1Start","type":"uint16"},{"internalType":"uint16","name":"shift2Start","type":"uint16"},{"internalType":"uint16","name":"shift3Start","type":"uint16"},{"internalType":"int8","name":"timezoneOffset","type":"int8"}],"internalType":"struct ShidoGuardEnterprise.ShiftRule","name":"shiftRule","type":"tuple"},{"internalType":"uint256","name":"totalGuards","type":"uint256"},{"internalType":"uint256","name":"totalLogs","type":"uint256"},{"internalType":"bool","name":"isRegistered","type":"bool"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"companyGuardList","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companyGuards","outputs":[{"internalType":"bytes32","name":"usernameHash","type":"bytes32"},{"internalType":"address","name":"activeWallet","type":"address"},{"internalType":"string","name":"profile","type":"string"},{"internalType":"bytes32","name":"currentZoneId","type":"bytes32"},{"internalType":"bytes32","name":"currentPostId","type":"bytes32"},{"internalType":"uint256","name":"lastVerifiedTapTime","type":"uint256"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companyNFCPoints","outputs":[{"internalType":"bytes32","name":"nfcHash","type":"bytes32"},{"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"internalType":"bytes32","name":"postId","type":"bytes32"},{"internalType":"string","name":"nfcName","type":"string"},{"internalType":"string","name":"defaultTapNote","type":"string"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"companyNfcList","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"companyPostList","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companyPosts","outputs":[{"internalType":"bytes32","name":"postId","type":"bytes32"},{"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"internalType":"string","name":"postName","type":"string"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"companyZoneList","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"companyZones","outputs":[{"internalType":"bytes32","name":"zoneId","type":"bytes32"},{"internalType":"string","name":"zoneName","type":"string"},{"internalType":"bool","name":"isActive","type":"bool"}],"stateMutability":"view","type":"function"},
+            {"inputs":[],"name":"depositGasTank","outputs":[],"stateMutability":"payable","type":"function"},
+            {"inputs":[{"internalType":"bytes32","name":"_nfcHash","type":"bytes32"},{"internalType":"string","name":"_newDefaultTapNote","type":"string"}],"name":"editNfcDefaultNote","outputs":[],"stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"internalType":"address","name":"_adminWallet","type":"address"}],"name":"getCompanyGuardUsernames","outputs":[{"internalType":"bytes32[]","name":"","type":"bytes32[]"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"_adminWallet","type":"address"}],"name":"getCompanyNfcIds","outputs":[{"internalType":"bytes32[]","name":"","type":"bytes32[]"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"_adminWallet","type":"address"}],"name":"getCompanyPostIds","outputs":[{"internalType":"bytes32[]","name":"","type":"bytes32[]"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"_adminWallet","type":"address"}],"name":"getCompanyZoneIds","outputs":[{"internalType":"bytes32[]","name":"","type":"bytes32[]"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"_adminWallet","type":"address"},{"internalType":"uint256","name":"_timestamp","type":"uint256"}],"name":"getCurrentDayIndex","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"_adminWallet","type":"address"},{"internalType":"bytes32","name":"_nfcHash","type":"bytes32"}],"name":"getGuardTodayPostReport","outputs":[{"internalType":"bool","name":"hasReportToday","type":"bool"},{"internalType":"bool","name":"isPhysicallyTapped","type":"bool"},{"internalType":"uint8","name":"shiftIndex","type":"uint8"},{"internalType":"uint256","name":"tapTime","type":"uint256"},{"internalType":"string","name":"note","type":"string"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"_wallet","type":"address"}],"name":"getWalletRole","outputs":[{"internalType":"uint8","name":"role","type":"uint8"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"nfcDailyStatus","outputs":[{"internalType":"uint256","name":"lastDayIndex","type":"uint256"},{"internalType":"uint256","name":"lastTapTime","type":"uint256"},{"internalType":"bytes32","name":"lastGuardHash","type":"bytes32"},{"internalType":"uint8","name":"shiftIndex","type":"uint8"},{"internalType":"bool","name":"isPhysicallyTapped","type":"bool"},{"internalType":"string","name":"note","type":"string"}],"stateMutability":"view","type":"function"},
             {"inputs":[],"name":"platformFeeBps","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
             {"inputs":[],"name":"platformOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"bytes","name":"_encryptedName","type":"bytes"},{"internalType":"address","name":"_adminWallet","type":"address"},{"internalType":"uint8","name":"_shiftMode","type":"uint8"},{"internalType":"uint16","name":"_shift1Start","type":"uint16"},{"internalType":"uint16","name":"_shift2Start","type":"uint16"},{"internalType":"uint16","name":"_shift3Start","type":"uint16"},{"internalType":"int8","name":"_timezoneOffset","type":"int8"}],"name":"registerCompanyWithWallet","outputs":[],"stateMutability":"payable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"bytes32","name":"_usernameHash","type":"bytes32"},{"internalType":"address","name":"_guardWallet","type":"address"},{"internalType":"bytes","name":"_encryptedProfile","type":"bytes"},{"internalType":"bytes32","name":"_initialZoneId","type":"bytes32"},{"internalType":"bytes32","name":"_initialPostId","type":"bytes32"},{"internalType":"bool","name":"_isActive","type":"bool"}],"name":"saveGuard","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"bytes32","name":"_zoneId","type":"bytes32"},{"internalType":"bytes32","name":"_postId","type":"bytes32"},{"internalType":"bytes32","name":"_nfcHash","type":"bytes32"},{"internalType":"bytes","name":"_encryptedNfcName","type":"bytes"},{"internalType":"bytes","name":"_encryptedDefaultTapNote","type":"bytes"},{"internalType":"bool","name":"_isActive","type":"bool"}],"name":"saveNFCPoint","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"bytes32","name":"_zoneId","type":"bytes32"},{"internalType":"bytes","name":"_name","type":"bytes"},{"internalType":"bool","name":"_isActive","type":"bool"}],"name":"savePost","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"bytes32","name":"_zoneId","type":"bytes32"},{"internalType":"bytes","name":"_name","type":"bytes"},{"internalType":"bool","name":"_isActive","type":"bool"}],"name":"saveZone","outputs":[],"stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"internalType":"string","name":"_name","type":"string"},{"internalType":"uint8","name":"_shiftMode","type":"uint8"},{"internalType":"uint16","name":"_shift1Start","type":"uint16"},{"internalType":"uint16","name":"_shift2Start","type":"uint16"},{"internalType":"uint16","name":"_shift3Start","type":"uint16"},{"internalType":"int8","name":"_timezoneOffset","type":"int8"}],"name":"registerCompanyWithWallet","outputs":[],"stateMutability":"payable","type":"function"},
+            {"inputs":[{"internalType":"bytes32","name":"_usernameHash","type":"bytes32"},{"internalType":"address","name":"_guardWallet","type":"address"},{"internalType":"string","name":"_profile","type":"string"},{"internalType":"bytes32","name":"_initialZoneId","type":"bytes32"},{"internalType":"bytes32","name":"_initialPostId","type":"bytes32"},{"internalType":"bool","name":"_isActive","type":"bool"}],"name":"saveGuard","outputs":[],"stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"internalType":"bytes32","name":"_zoneId","type":"bytes32"},{"internalType":"bytes32","name":"_postId","type":"bytes32"},{"internalType":"bytes32","name":"_nfcHash","type":"bytes32"},{"internalType":"string","name":"_nfcName","type":"string"},{"internalType":"string","name":"_defaultTapNote","type":"string"},{"internalType":"bool","name":"_isActive","type":"bool"}],"name":"saveNFCPoint","outputs":[],"stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"internalType":"bytes32","name":"_zoneId","type":"bytes32"},{"internalType":"bytes32","name":"_postId","type":"bytes32"},{"internalType":"string","name":"_name","type":"string"},{"internalType":"bool","name":"_isActive","type":"bool"}],"name":"savePost","outputs":[],"stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"internalType":"bytes32","name":"_zoneId","type":"bytes32"},{"internalType":"string","name":"_name","type":"string"},{"internalType":"bool","name":"_isActive","type":"bool"}],"name":"saveZone","outputs":[],"stateMutability":"nonpayable","type":"function"},
             {"inputs":[{"internalType":"uint256","name":"_newFeeBps","type":"uint256"}],"name":"setPlatformFeeBps","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"bytes32[]","name":"_hardwareScannedNfcHashes","type":"bytes32[]"},{"internalType":"bytes32[]","name":"_manualSelectedNfcHashes","type":"bytes32[]"},{"internalType":"bool[]","name":"_isPhysicallyTappedList","type":"bool[]"},{"internalType":"bytes[]","name":"_untappedReasons","type":"bytes[]"},{"internalType":"uint256[]","name":"_verifiedTapTimes","type":"uint256[]"}],"name":"submitOfflineBatchPatrol","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"bytes32","name":"_hardwareScannedNfcHash","type":"bytes32"},{"internalType":"bytes32","name":"_manualSelectedNfcHash","type":"bytes32"},{"internalType":"bool","name":"_isPhysicallyTapped","type":"bool"},{"internalType":"bytes","name":"_untappedReasonByGuard","type":"bytes"}],"name":"submitPatrolOnline","outputs":[],"stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"internalType":"address","name":"_adminWallet","type":"address"},{"internalType":"bytes32[]","name":"_hwNfcHashes","type":"bytes32[]"},{"internalType":"bytes32[]","name":"_manNfcHashes","type":"bytes32[]"},{"internalType":"bool[]","name":"_isTappedList","type":"bool[]"},{"internalType":"string[]","name":"_reasons","type":"string[]"},{"internalType":"uint256[]","name":"_tapTimes","type":"uint256[]"}],"name":"submitOfflineBatchPatrol","outputs":[],"stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"internalType":"address","name":"_adminWallet","type":"address"},{"internalType":"bytes32","name":"_hwNfcHash","type":"bytes32"},{"internalType":"bytes32","name":"_manNfcHash","type":"bytes32"},{"internalType":"bool","name":"_isPhysicallyTapped","type":"bool"},{"internalType":"string","name":"_reason","type":"string"}],"name":"submitPatrolOnline","outputs":[],"stateMutability":"nonpayable","type":"function"},
             {"inputs":[],"name":"totalCompaniesRegistered","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
             {"inputs":[],"name":"totalPlatformFeeEarned","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
             {"inputs":[{"internalType":"address","name":"_newOwner","type":"address"}],"name":"transferPlatformOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"uint8","name":"_shiftMode","type":"uint8"},{"internalType":"uint16","name":"_shift1Start","type":"uint16"},{"internalType":"uint16","name":"_shift2Start","type":"uint16"},{"internalType":"uint16","name":"_shift3Start","type":"uint16"},{"internalType":"int8","name":"_timezoneOffset","type":"int8"}],"name":"updateShiftRule","outputs":[],"stateMutability":"nonpayable","type":"function"},
-            {"inputs":[{"internalType":"bytes32","name":"_companyId","type":"bytes32"},{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"withdrawGasTank","outputs":[],"stateMutability":"nonpayable","type":"function"}
+            {"inputs":[{"internalType":"uint8","name":"_shiftMode","type":"uint8"},{"internalType":"uint16","name":"_shift1Start","type":"uint16"},{"internalType":"uint16","name":"_shift2Start","type":"uint16"},{"internalType":"uint16","name":"_shift3Start","type":"uint16"},{"internalType":"int8","name":"_timezoneOffset","type":"int8"}],"name":"updateShiftRule","outputs":[],"stateMutability":"nonpayable","type":"function"},
+            {"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"}],"name":"walletToUsernameHash","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},
+            {"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"withdrawGasTank","outputs":[],"stateMutability":"nonpayable","type":"function"}
         ];
 
         let rpcReadProvider = null;
@@ -654,27 +675,14 @@
         let editingNfcTargetHash = null;
         const txLogHistory = [];
 
+        function getActiveProvider() {
+            return browserProvider || rpcReadProvider;
+        }
+
         function toBytes32(text) {
             const clean = String(text || "").trim();
             if (/^0x[0-9a-fA-F]{64}$/.test(clean)) return clean;
             return ethers.id(clean);
-        }
-
-        function getCompanyBytes32(comp) {
-            if (!comp) return ethers.ZeroHash;
-            if (comp.onChainId && /^0x[0-9a-fA-F]{64}$/.test(comp.onChainId)) {
-                return comp.onChainId;
-            }
-            return toBytes32(comp.id);
-        }
-
-        function strToHexBytes(text) {
-            return ethers.hexlify(ethers.toUtf8Bytes(String(text || "")));
-        }
-
-        function hexBytesToStr(hex) {
-            if (!hex || hex === "0x") return "";
-            try { return ethers.toUtf8String(hex); } catch (_) { return ""; }
         }
 
         function escapeAttr(str) {
@@ -691,7 +699,8 @@
         function deriveStealthWallet(companyId, username, password) {
             const seed = `SHIDOGUARD_STEALTH_V1:${String(companyId).trim().toUpperCase()}:${String(username).trim().toLowerCase()}:${String(password).trim()}`;
             const pk = ethers.keccak256(ethers.toUtf8Bytes(seed));
-            return rpcReadProvider ? new ethers.Wallet(pk, rpcReadProvider) : new ethers.Wallet(pk);
+            const prov = getActiveProvider();
+            return prov ? new ethers.Wallet(pk, prov) : new ethers.Wallet(pk);
         }
 
         function showToast(title, message, type = "success", txHash = null) {
@@ -753,34 +762,21 @@
         }
 
         async function ensureCompanyOnChainReady(comp) {
-            if (!comp) return ethers.ZeroHash;
+            if (!comp) return ethers.ZeroAddress;
             if (!browserSigner && typeof window.ethereum !== 'undefined') {
                 await connectRealMetaMask(true);
             }
-            if (!browserSigner || !connectedMetaMaskAddress) return getCompanyBytes32(comp);
+            if (!browserSigner || !connectedMetaMaskAddress) return comp.adminWallet || ethers.ZeroAddress; 
 
             try {
                 const contract = new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, browserSigner);
-                const mappedCompId = await contract.adminToCompany(connectedMetaMaskAddress);
-
-                if (mappedCompId && mappedCompId !== ethers.ZeroHash) {
-                    comp.onChainId = mappedCompId;
-                    comp.adminWallet = connectedMetaMaskAddress;
-                    saveStateToStorage();
-                    return mappedCompId;
-                }
-
-                let targetId = getCompanyBytes32(comp);
-                const cData = await contract.companies(targetId);
+                const cData = await contract.companies(connectedMetaMaskAddress);
 
                 if (cData && cData.isRegistered) {
-                    if (cData.admin.toLowerCase() === connectedMetaMaskAddress.toLowerCase()) {
-                        comp.onChainId = targetId;
+                    if (cData.adminWallet.toLowerCase() === connectedMetaMaskAddress.toLowerCase()) {
                         comp.adminWallet = connectedMetaMaskAddress;
                         saveStateToStorage();
-                        return targetId;
-                    } else {
-                        targetId = toBytes32(`${comp.id}_${connectedMetaMaskAddress.slice(2, 8).toUpperCase()}`);
+                        return connectedMetaMaskAddress;
                     }
                 }
 
@@ -788,33 +784,138 @@
                 const s1 = timeStrToMinutes(comp.shiftRule.shift1Start);
                 const s2 = timeStrToMinutes(comp.shiftRule.shift2Start);
                 const s3 = timeStrToMinutes(comp.shiftRule.shift3Start);
+                const tzOffset = -(new Date().getTimezoneOffset() / 60);
+
                 const tx = await contract.registerCompanyWithWallet(
-                    targetId,
-                    strToHexBytes(comp.name),
-                    connectedMetaMaskAddress,
+                    comp.name,
                     Number(comp.shiftRule.mode) || 2,
                     s1,
                     s2,
                     s3,
-                    8,
+                    tzOffset,
                     { value: 0n }
                 );
                 const rec = await tx.wait();
-                comp.onChainId = targetId;
                 comp.adminWallet = connectedMetaMaskAddress;
                 saveStateToStorage();
                 recordTxHistory("registerCompanyWithWallet", `Auto-Register ${comp.name}`, rec.hash, "MetaMask On-Chain");
-                return targetId;
+                return connectedMetaMaskAddress;
             } catch (err) {}
-            return getCompanyBytes32(comp);
+            return comp.adminWallet || connectedMetaMaskAddress;
+        }
+
+        async function recoverCompanyHierarchyFromChainV3(adminAddr) {
+            if (!adminAddr || adminAddr === ethers.ZeroAddress) return;
+            const comp = Object.values(db.companies).find(c => c.adminWallet.toLowerCase() === adminAddr.toLowerCase());
+            if (!comp) return;
+
+            const prov = getActiveProvider();
+            if (!prov) return;
+            const contract = new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, prov);
+
+            showToast("Memulihkan Data dari Blockchain", "Menarik data hierarki (Wilayah, Pos, NFC) yang tersimpan di chain. Harap tunggu sebentar...", "info");
+
+            try {
+                try {
+                    const zoneIds = await contract.getCompanyZoneIds(adminAddr);
+                    for (const zId of zoneIds) {
+                        const zData = await contract.companyZones(adminAddr, zId);
+                        if (zData && zData.isActive) {
+                            if (!comp.zones.find(z => toBytes32(z.id) === zData.zoneId)) {
+                                comp.zones.push({ id: zData.zoneId, name: zData.zoneName });
+                            }
+                        }
+                    }
+                } catch (e1) {
+                    console.error("Gagal menarik Zones:", e1);
+                    throw new Error("Gagal membaca daftar Wilayah dari RPC.");
+                }
+
+                try {
+                    const postIds = await contract.getCompanyPostIds(adminAddr);
+                    for (const pId of postIds) {
+                        const pData = await contract.companyPosts(adminAddr, pId);
+                        if (pData && pData.isActive) {
+                            if (!comp.posts.find(p => toBytes32(p.id) === pData.postId)) {
+                                comp.posts.push({ id: pData.postId, zoneId: pData.zoneId, name: pData.postName });
+                            }
+                        }
+                    }
+                } catch (e2) {
+                    console.error("Gagal menarik Posts:", e2);
+                    throw new Error("Gagal membaca daftar Pos dari RPC.");
+                }
+
+                try {
+                    const nfcHashes = await contract.getCompanyNfcIds(adminAddr);
+                    for (const nfcHash of nfcHashes) {
+                        const nData = await contract.companyNFCPoints(adminAddr, nfcHash);
+                        if (nData && nData.isActive) {
+                            if (!comp.nfcs.find(n => toBytes32(n.hash) === nData.nfcHash)) {
+                                comp.nfcs.push({
+                                    hash: nData.nfcHash,
+                                    zoneId: nData.zoneId,
+                                    postId: nData.postId,
+                                    name: nData.nfcName,
+                                    defaultTapNote: nData.defaultTapNote,
+                                    dailyRecords: {}
+                                });
+                            }
+                        }
+                    }
+                } catch (e3) {
+                    console.error("Gagal menarik NFC:", e3);
+                    throw new Error("Gagal membaca daftar NFC dari RPC.");
+                }
+
+                try {
+                    const guardHashes = await contract.getCompanyGuardUsernames(adminAddr);
+                    for (const gHash of guardHashes) {
+                        const gData = await contract.companyGuards(adminAddr, gHash);
+                        if (gData && gData.isActive) {
+                            let existing = comp.guards.find(g => toBytes32(g.username) === gHash);
+                            if (!existing) {
+                                comp.guards.push({
+                                    username: `u_${gHash.slice(2, 8)}`,
+                                    pass: "*** (Butuh Kode Sync)",
+                                    name: gData.profile || "Sekuriti",
+                                    currentZoneId: gData.currentZoneId,
+                                    currentPostId: gData.currentPostId,
+                                    stealthAddress: gData.activeWallet
+                                });
+                            } else {
+                                existing.currentZoneId = gData.currentZoneId;
+                                existing.currentPostId = gData.currentPostId;
+                                existing.stealthAddress = gData.activeWallet;
+                            }
+                        }
+                    }
+                } catch (e4) {
+                    console.warn("Gagal menarik Guards, melewati...", e4);
+                }
+
+                saveStateToStorage();
+                
+                if (!document.getElementById('viewAdmin').classList.contains('hidden')) {
+                    db.activeAdminSelectedZoneId = comp.zones[0]?.id || null;
+                    db.activeAdminSelectedPostId = comp.posts.find(p => p.zoneId === db.activeAdminSelectedZoneId)?.id || null;
+                    initAdminPanel();
+                }
+                
+                showToast("Recovery Selesai!", "Seluruh data Wilayah, Pos, dan NFC berhasil dipulihkan dari blockchain ke browser ini.", "success");
+            } catch (e) {
+                console.error("Error recover hierarchy:", e);
+                showToast("Recovery Gagal", `Penyebab: ${e.message || "Koneksi RPC terputus"}`, "error");
+            }
         }
 
         async function trySendOnChainTx(methodName, args = [], valueInShido = "0", summary = "", stealthSigner = null) {
             const isGuardOnlyMethod = (methodName === "submitPatrolOnline" || methodName === "submitOfflineBatchPatrol");
             try {
-                if (stealthSigner && rpcReadProvider) {
-                    const bal = await rpcReadProvider.getBalance(stealthSigner.address);
-                    if (bal > 0n) {
+                const activeProv = getActiveProvider();
+                if (stealthSigner && activeProv) {
+                    const bal = await activeProv.getBalance(stealthSigner.address);
+                    if (bal >= 0n) {
                         const contractWithStealth = new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, stealthSigner);
                         const tx = await contractWithStealth[methodName](...args);
                         showToast(`Mengirim On-Chain (${methodName})`, `${summary}\nStealth Wallet menandatangani transaksi otomatis...`, "info", tx.hash);
@@ -986,7 +1087,7 @@
                 const hwHashes = db.offlineQueue.map(i => i.isTapped ? toBytes32(i.nfcHash) : ethers.ZeroHash);
                 const manualHashes = db.offlineQueue.map(i => toBytes32(i.manualHash || i.nfcHash));
                 const tappedFlags = db.offlineQueue.map(i => Boolean(i.isTapped));
-                const reasonsHex = db.offlineQueue.map(i => i.isTapped ? "0x" : strToHexBytes(i.record.note));
+                const reasons = db.offlineQueue.map(i => i.isTapped ? "" : i.record.note);
                 const tapTimes = db.offlineQueue.map(i => i.unixTime || Math.floor(Date.now() / 1000));
 
                 db.offlineQueue.forEach(item => {
@@ -1012,7 +1113,7 @@
 
                 await trySendOnChainTx(
                     "submitOfflineBatchPatrol",
-                    [getCompanyBytes32(firstComp), hwHashes, manualHashes, tappedFlags, reasonsHex, tapTimes],
+                    [firstComp.adminWallet, hwHashes, manualHashes, tappedFlags, reasons, tapTimes],
                     "0",
                     `Batch Sync ${count} laporan patroli offline`,
                     stealth
@@ -1044,7 +1145,6 @@
         async function initShidoRpcReader() {
             try {
                 rpcReadProvider = new ethers.JsonRpcProvider(SHIDO_RPC_URL);
-                rpcReadContract = new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, rpcReadProvider);
                 await syncFromSmartContract(false);
                 document.getElementById('lblChainStatusText').innerText = "Terhubung ke Shido Chain (RPC Ready)";
             } catch (_) {
@@ -1053,34 +1153,44 @@
         }
 
         async function syncFromSmartContract(notify = false) {
-            if (!rpcReadContract) return;
-            try {
-                const [ownerAddr, feeBps, totalFee, totalComps] = await Promise.all([
-                    rpcReadContract.platformOwner(),
-                    rpcReadContract.platformFeeBps(),
-                    rpcReadContract.totalPlatformFeeEarned(),
-                    rpcReadContract.totalCompaniesRegistered()
-                ]);
+            const prov = getActiveProvider();
+            if (!prov) return;
+            const readContract = new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, prov);
 
-                if (ownerAddr && ownerAddr !== ethers.ZeroAddress) db.ownerWallet = ownerAddr;
-                if (Number(feeBps) >= 200) db.platformFeeBps = Number(feeBps);
-                const feeEarned = Number(ethers.formatEther(totalFee));
-                if (feeEarned > 0) db.totalPlatformRevenue = feeEarned;
+            try {
+                let ownerAddr, feeBps, totalFee, totalComps;
+                try {
+                    [ownerAddr, feeBps, totalFee, totalComps] = await Promise.all([
+                        readContract.platformOwner(),
+                        readContract.platformFeeBps(),
+                        readContract.totalPlatformFeeEarned(),
+                        readContract.totalCompaniesRegistered()
+                    ]);
+                    if (ownerAddr && ownerAddr !== ethers.ZeroAddress) db.ownerWallet = ownerAddr;
+                    if (Number(feeBps) >= 200) db.platformFeeBps = Number(feeBps);
+                    const feeEarned = Number(ethers.formatEther(totalFee));
+                    if (feeEarned > 0) db.totalPlatformRevenue = feeEarned;
+                } catch (eInit) {
+                    console.warn("Gagal menarik data platform owner:", eInit);
+                }
 
                 const nowUnix = Math.floor(getTrueActualDate().getTime() / 1000);
                 const todayKey = getCurrentDateKey();
 
                 for (const comp of Object.values(db.companies)) {
-                    const compBytes32 = getCompanyBytes32(comp);
-                    const cData = await rpcReadContract.companies(compBytes32);
+                    if (!comp.adminWallet || comp.adminWallet === ethers.ZeroAddress) continue;
+                    const adminAddr = comp.adminWallet;
+
+                    let cData;
+                    try {
+                        cData = await readContract.companies(adminAddr);
+                    } catch (eCData) {
+                        console.warn(`Gagal menarik cData untuk ${adminAddr}:`, eCData);
+                        continue; 
+                    }
 
                     if (cData && cData.isRegistered) {
-                        comp.onChainId = compBytes32;
-                        const onChainName = hexBytesToStr(cData.encryptedName);
-                        if (onChainName) comp.name = onChainName;
-                        if (cData.admin && cData.admin !== ethers.ZeroAddress) {
-                            comp.adminWallet = cData.admin;
-                        }
+                        if (cData.name) comp.name = cData.name;
                         comp.gasTank = Number(ethers.formatEther(cData.gasTankBalance));
 
                         if (cData.shiftRule && Number(cData.shiftRule.shiftMode) >= 2) {
@@ -1091,46 +1201,74 @@
                         }
 
                         let currentDayIdx = 0n;
-                        try {
-                            currentDayIdx = await rpcReadContract.getCurrentDayIndex(compBytes32, nowUnix);
-                        } catch (_) {}
+                        try { currentDayIdx = await readContract.getCurrentDayIndex(adminAddr, nowUnix); } catch (_) {}
 
                         for (const nfc of comp.nfcs) {
                             const nfcBytes32 = toBytes32(nfc.hash);
                             try {
                                 const [ptData, stData] = await Promise.all([
-                                    rpcReadContract.companyNFCPoints(compBytes32, nfcBytes32),
-                                    rpcReadContract.nfcDailyStatus(compBytes32, nfcBytes32)
+                                    readContract.companyNFCPoints(adminAddr, nfcBytes32),
+                                    readContract.nfcDailyStatus(adminAddr, nfcBytes32)
                                 ]);
                                 if (ptData && ptData.isActive) {
-                                    const defNote = hexBytesToStr(ptData.encryptedDefaultTapNote);
-                                    if (defNote) nfc.defaultTapNote = defNote;
+                                    if (ptData.defaultTapNote) nfc.defaultTapNote = ptData.defaultTapNote;
                                 }
                                 if (stData && Number(stData.lastTapTime) > 0 && stData.lastDayIndex === currentDayIdx) {
                                     const tapDate = new Date(Number(stData.lastTapTime) * 1000);
-                                    const noteStr = hexBytesToStr(stData.encryptedNote) || nfc.defaultTapNote;
                                     nfc.dailyRecords[todayKey] = {
                                         status: stData.isPhysicallyTapped ? "TAPPED" : "UNTAPPED",
                                         guardName: nfc.dailyRecords[todayKey]?.guardName || "Terverifikasi On-Chain",
                                         time: tapDate.toLocaleTimeString('id-ID'),
                                         dateKey: todayKey,
                                         shift: detectCompanyShift(comp, tapDate),
-                                        note: noteStr
+                                        note: stData.note || nfc.defaultTapNote
                                     };
                                 }
                             } catch (_) {}
                         }
 
-                        for (const g of comp.guards) {
+                        try {
+                            let events = [];
                             try {
-                                const gData = await rpcReadContract.companyGuards(compBytes32, toBytes32(g.username));
-                                if (gData && gData.isActive) {
-                                    const matchedZone = comp.zones.find(z => toBytes32(z.id) === gData.currentZoneId);
-                                    const matchedPost = comp.posts.find(p => toBytes32(p.id) === gData.currentPostId);
-                                    if (matchedZone) g.currentZoneId = matchedZone.id;
-                                    if (matchedPost) g.currentPostId = matchedPost.id;
+                                const currentBlock = await prov.getBlockNumber();
+                                const startBlock = Math.max(0, currentBlock - 5000); 
+                                const filter = readContract.filters.PatrolRecorded(adminAddr);
+                                events = await readContract.queryFilter(filter, startBlock, "latest");
+                            } catch (eFilter1) {
+                                try {
+                                    const filter = readContract.filters.PatrolRecorded(adminAddr);
+                                    events = await readContract.queryFilter(filter, 0, "latest");
+                                } catch (eFilter2) {
+                                    throw eFilter2;
                                 }
-                            } catch (_) {}
+                            }
+                            
+                            comp.allHistoryLogs = [];
+                            for (const evt of events) {
+                                const eArgs = evt.args;
+                                const eTime = new Date(Number(eArgs.actualTapTime || eArgs[10]) * 1000); 
+                                
+                                const matchZone = comp.zones.find(z => toBytes32(z.id) === (eArgs.zoneId || eArgs[4]));
+                                const matchPost = comp.posts.find(p => toBytes32(p.id) === (eArgs.postId || eArgs[5]));
+                                const matchNfc = comp.nfcs.find(n => toBytes32(n.hash) === (eArgs.recordedNfcHash || eArgs[6]));
+                                
+                                const matchedGuard = comp.guards.find(g => toBytes32(g.username) === (eArgs.usernameHash || eArgs[3]));
+                                const guardNameStr = matchedGuard ? `${matchedGuard.name} (${matchedGuard.username})` : `Sekuriti (${(eArgs.usernameHash || eArgs[3]).slice(0,8)})`;
+
+                                const historyEntry = {
+                                    dateKey: `${eTime.getFullYear()}-${String(eTime.getMonth() + 1).padStart(2, '0')}-${String(eTime.getDate()).padStart(2, '0')}`,
+                                    time: eTime.toLocaleTimeString('id-ID'),
+                                    shift: `Shift ${eArgs.shiftIndex || eArgs[9]}`,
+                                    guard: guardNameStr,
+                                    location: `${matchZone ? matchZone.name : 'Unk'} • ${matchPost ? matchPost.name : 'Unk'} • ${matchNfc ? matchNfc.name : 'Unk'}`,
+                                    status: (eArgs.isPhysicallyTapped || eArgs[7]) ? "TAPPED" : "UNTAPPED",
+                                    syncInfo: (eArgs.isOfflineSynced || eArgs[8]) ? "Antrean Offline (Batch)" : "Online Real-Time",
+                                    note: matchNfc ? matchNfc.defaultTapNote : "-"
+                                };
+                                comp.allHistoryLogs.unshift(historyEntry);
+                            }
+                        } catch (eventErr) {
+                            console.warn(`Gagal menarik Event Logs untuk ${adminAddr}:`, eventErr);
                         }
                     }
                 }
@@ -1140,7 +1278,7 @@
                 if (notify) {
                     showToast(
                         "Sinkronisasi Blockchain Selesai",
-                        `Data terbaru dari kontrak ${SHIDOGUARD_CONTRACT_ADDRESS.slice(0, 10)}... berhasil dimuat (${Number(totalComps)} PT terdaftar on-chain).`,
+                        `Data terbaru dari kontrak ${SHIDOGUARD_CONTRACT_ADDRESS.slice(0, 10)}... berhasil dimuat.`,
                         "info"
                     );
                 }
@@ -1156,7 +1294,8 @@
             if (!db.loggedGuard) return;
             const comp = db.companies[db.loggedGuard.compId];
             const guard = comp?.guards.find(g => g.username === db.loggedGuard.username);
-            if (!comp || !guard || !rpcReadProvider) return;
+            const prov = getActiveProvider();
+            if (!comp || !guard || !prov) return;
 
             const stealth = deriveStealthWallet(comp.id, guard.username, db.loggedGuard.pass || "123456");
             const contractAsGuard = new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, stealth);
@@ -1164,11 +1303,11 @@
 
             let verifiedOnChainCount = 0;
             const todayKey = getCurrentDateKey();
-            const compBytes32 = getCompanyBytes32(comp);
+            const adminAddr = comp.adminWallet;
 
             for (const nfc of myPostNfcs) {
                 try {
-                    const res = await contractAsGuard.getGuardTodayPostReport(compBytes32, toBytes32(nfc.hash));
+                    const res = await contractAsGuard.getGuardTodayPostReport(adminAddr, toBytes32(nfc.hash));
                     if (res && res.hasReportToday) {
                         verifiedOnChainCount++;
                         const tapDate = new Date(Number(res.tapTime) * 1000);
@@ -1178,7 +1317,7 @@
                             time: tapDate.toLocaleTimeString('id-ID'),
                             dateKey: todayKey,
                             shift: detectCompanyShift(comp, tapDate),
-                            note: hexBytesToStr(res.encryptedNote) || nfc.defaultTapNote
+                            note: res.note || nfc.defaultTapNote
                         };
                     }
                 } catch (_) {}
@@ -1211,7 +1350,6 @@
             }
         }
 
-        // PEMUTUSAN KONEKSI METAMASK EIP-2255 (FORCED REVOKE)
         async function disconnectMetaMask() {
             try { localStorage.setItem(STORAGE_KEY + "_MM_DISCONNECTED", "1"); } catch (_) {}
             connectedMetaMaskAddress = null;
@@ -1307,9 +1445,9 @@
                         const contract = new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, browserSigner);
                         
                         try {
-                            const [mappedCompId, ownerAddr] = await Promise.all([
-                                contract.adminToCompany(connectedMetaMaskAddress),
-                                contract.platformOwner()
+                            const [ownerAddr, cData] = await Promise.all([
+                                contract.platformOwner(),
+                                contract.companies(connectedMetaMaskAddress)
                             ]);
 
                             const isOwner = (ownerAddr && ownerAddr.toLowerCase() === connectedMetaMaskAddress.toLowerCase());
@@ -1320,21 +1458,18 @@
                             let isAdmin = false;
                             let matchedComp = null;
 
-                            if (mappedCompId && mappedCompId !== ethers.ZeroHash) {
+                            if (cData && cData.isRegistered) {
                                 isAdmin = true;
-                                const cData = await contract.companies(mappedCompId);
-                                const decodedName = hexBytesToStr(cData.encryptedName) || `Perusahaan ${mappedCompId.slice(0, 8)}`;
+                                const decodedName = cData.name || `Perusahaan Baru`;
 
                                 matchedComp = Object.values(db.companies).find(
-                                    c => getCompanyBytes32(c).toLowerCase() === mappedCompId.toLowerCase() ||
-                                         c.adminWallet.toLowerCase() === connectedMetaMaskAddress.toLowerCase()
+                                    c => c.adminWallet.toLowerCase() === connectedMetaMaskAddress.toLowerCase()
                                 );
 
                                 if (!matchedComp) {
-                                    const cleanKey = `PT_${mappedCompId.slice(2, 8).toUpperCase()}`;
+                                    const cleanKey = `PT_${connectedMetaMaskAddress.slice(2, 8).toUpperCase()}`;
                                     db.companies[cleanKey] = {
                                         id: cleanKey,
-                                        onChainId: mappedCompId,
                                         name: decodedName,
                                         adminWallet: connectedMetaMaskAddress,
                                         gasTank: Number(ethers.formatEther(cData.gasTankBalance)),
@@ -1352,7 +1487,6 @@
                                     };
                                     matchedComp = db.companies[cleanKey];
                                 } else {
-                                    matchedComp.onChainId = mappedCompId;
                                     matchedComp.adminWallet = connectedMetaMaskAddress;
                                     if (decodedName) matchedComp.name = decodedName;
                                     matchedComp.gasTank = Number(ethers.formatEther(cData.gasTankBalance));
@@ -1380,6 +1514,10 @@
                                 btnAdmin.classList.remove('hidden');
                                 openCompanyAdminPanel(matchedComp.id);
                                 showToast("Admin Terverifikasi", `Selamat datang di Panel Admin ${matchedComp.name}!`, "success");
+                                
+                                if (matchedComp.zones.length === 0) {
+                                    await recoverCompanyHierarchyFromChainV3(connectedMetaMaskAddress);
+                                }
                             } else {
                                 switchMode('register');
                                 showToast("Wallet Terhubung", "Silakan daftarkan perusahaan baru Anda.", "info");
@@ -1409,6 +1547,10 @@
                                 btnAdmin.classList.remove('hidden');
                                 openCompanyAdminPanel(existingAdmin.id);
                                 showToast("Admin Terverifikasi (Mode Cache)", "Masuk menggunakan data offline.", "info");
+                                
+                                if (existingAdmin.zones.length === 0) {
+                                    await recoverCompanyHierarchyFromChainV3(connectedMetaMaskAddress);
+                                }
                             } else {
                                 switchMode('register');
                                 showToast("Wallet Terhubung", "Silakan daftarkan perusahaan baru Anda.", "info");
@@ -1438,22 +1580,23 @@
                 await connectRealMetaMask(true);
                 if (!browserSigner) return;
             }
-            const onChainCompId = await ensureCompanyOnChainReady(comp);
+            await ensureCompanyOnChainReady(comp);
             const s1 = timeStrToMinutes(comp.shiftRule.shift1Start);
             const s2 = timeStrToMinutes(comp.shiftRule.shift2Start);
             const s3 = timeStrToMinutes(comp.shiftRule.shift3Start);
 
+            const tzOffset = -(new Date().getTimezoneOffset() / 60);
+
             await trySendOnChainTx(
                 "updateShiftRule",
-                [onChainCompId, Number(comp.shiftRule.mode), s1, s2, s3, 8],
+                [Number(comp.shiftRule.mode), s1, s2, s3, tzOffset],
                 "0",
-                `Sinkronisasi ${comp.name} (${comp.id}) di kontrak 0x9AA4...79C7`
+                `Sinkronisasi Aturan Jam Kerja ke Blockchain`
             );
             initAdminPanel();
-            showToast("Perusahaan Tersinkronisasi", `${comp.name} telah aktif dan terhubung dengan wallet Anda di Smart Contract.`, "success");
+            showToast("Aturan Jam Kerja Tersinkronisasi", `Shift rule untuk ${comp.name} telah diupdate ke Smart Contract.`, "success");
         }
 
-        // PENDAFTARAN WAJIB ON-CHAIN (STRICT BLOCKCHAIN LOCK)
         async function submitSelfServiceCompany() {
             let wallet = document.getElementById('selfRegWallet').value.trim();
             const rawId = document.getElementById('selfRegId').value.trim().toUpperCase().replace(/\s+/g, '_');
@@ -1475,32 +1618,22 @@
 
             const id = rawId;
             const fee = dep * (db.platformFeeBps / 10000);
-            
-            let onChainCompId = toBytes32(id);
             let isTxSuccess = false;
 
             if (browserSigner && connectedMetaMaskAddress) {
                 try {
                     const contract = new ethers.Contract(SHIDOGUARD_CONTRACT_ADDRESS, SHIDOGUARD_ABI, browserSigner);
-                    const existingCompId = await contract.adminToCompany(connectedMetaMaskAddress);
+                    const checkComp = await contract.companies(connectedMetaMaskAddress);
 
-                    if (existingCompId && existingCompId !== ethers.ZeroHash) {
-                        onChainCompId = existingCompId;
+                    if (checkComp && checkComp.isRegistered) {
                         isTxSuccess = true;
-                        showToast(
-                            "Wallet Sudah Terkunci",
-                            `Wallet ini sudah memiliki hak Admin PT di Blockchain. Menyinkronkan data...`,
-                            "info"
-                        );
+                        showToast("Wallet Sudah Terkunci", `Wallet ini sudah terdaftar sebagai Admin di Blockchain. Menyinkronkan data...`, "info");
                     } else {
-                        const checkComp = await contract.companies(onChainCompId);
-                        if (checkComp && checkComp.isRegistered && checkComp.admin.toLowerCase() !== connectedMetaMaskAddress.toLowerCase()) {
-                            onChainCompId = toBytes32(`${id}_${connectedMetaMaskAddress.slice(2, 8).toUpperCase()}`);
-                        }
+                        const tzOffset = -(new Date().getTimezoneOffset() / 60);
 
                         const txHash = await trySendOnChainTx(
                             "registerCompanyWithWallet",
-                            [onChainCompId, strToHexBytes(name), connectedMetaMaskAddress, shiftMode, 360, shiftMode === 2 ? 1020 : 840, 1320, 8],
+                            [name, shiftMode, 360, shiftMode === 2 ? 1020 : 840, 1320, tzOffset],
                             String(dep),
                             `Registrasi Permanen ${name}`
                         );
@@ -1508,7 +1641,7 @@
                         if (!txHash) {
                             return showToast(
                                 "Registrasi Dibatalkan", 
-                                "Pendaftaran WAJIB disetujui di MetaMask agar terkunci permanen di Blockchain. Jika Anda tolak, data tidak disimpan!", 
+                                "Pendaftaran WAJIB disetujui di MetaMask agar terkunci permanen di Blockchain.", 
                                 "error"
                             );
                         }
@@ -1526,7 +1659,6 @@
                 db.totalPlatformRevenue += fee;
                 db.companies[id] = {
                     id,
-                    onChainId: onChainCompId,
                     name,
                     adminWallet: wallet,
                     gasTank: dep - fee,
@@ -1539,14 +1671,17 @@
                 };
 
                 saveStateToStorage();
-                await recoverCompanyHierarchyFromChainV3(wallet);
                 
                 document.getElementById('navShortcutPanel').classList.remove('hidden'); 
                 document.getElementById('btnShortcutAdmin').classList.remove('hidden');
                 
                 openCompanyAdminPanel(id);
                 switchAdminTab('hierarchy');
-                showToast("Terkunci Permanen", `Selamat! ${name} telah direkam selamanya di Blockchain. Cache dihapus pun data tetap aman dan ter-sync saat login.`, "success");
+                showToast("Terkunci Permanen", `Selamat! ${name} telah direkam selamanya di Blockchain.`, "success");
+                
+                if (db.companies[id].zones.length === 0) {
+                    await recoverCompanyHierarchyFromChainV3(wallet);
+                }
             }
         }
 
@@ -1785,7 +1920,9 @@
                 note: actualNfc.defaultTapNote
             };
 
-            if (db.isOnline) {
+            const isSpottyConnection = (db.isOnline && db.offlineQueue.length > 0);
+
+            if (db.isOnline && !isSpottyConnection) {
                 actualNfc.dailyRecords[todayKey] = recordObj;
                 comp.allHistoryLogs.unshift(historyEntry);
                 comp.gasTank = Math.max(0, comp.gasTank - 0.0012);
@@ -1797,7 +1934,7 @@
                 const stealth = deriveStealthWallet(comp.id, guard.username, db.loggedGuard.pass || "123456");
                 const txHash = await trySendOnChainTx(
                     "submitPatrolOnline",
-                    [getCompanyBytes32(comp), toBytes32(actualNfc.hash), toBytes32(manualHash || actualNfc.hash), true, "0x"],
+                    [comp.adminWallet, toBytes32(actualNfc.hash), toBytes32(manualHash || actualNfc.hash), true, ""],
                     "0",
                     `Tap NFC: ${actualNfc.name} (${guard.name})`,
                     stealth
@@ -1825,11 +1962,16 @@
                 if (oldPostId !== actualNfc.postId) initGuardSelectors();
                 else refreshGuardView();
 
-                showToast(
-                    "📴 [TERSIMPAN TANPA INTERNET]",
-                    `Tap ${actualNfc.name} dikunci dengan Jam Aktual (${timeStr}). Akan otomatis di-update ke Blockchain begitu sinyal kembali!${antiCheatAlert}`,
-                    "warning"
-                );
+                if (isSpottyConnection) {
+                    showToast("Sinyal Fluktuatif", "Memaksa sinkronisasi antrean secara berurutan untuk mencegah data hilang...", "info");
+                    processOfflineQueue();
+                } else {
+                    showToast(
+                        "📴 [TERSIMPAN TANPA INTERNET]",
+                        `Tap ${actualNfc.name} dikunci dengan Jam Aktual (${timeStr}). Akan otomatis di-update ke Blockchain begitu sinyal kembali!${antiCheatAlert}`,
+                        "warning"
+                    );
+                }
             }
         }
 
@@ -1876,7 +2018,9 @@
 
             document.getElementById('txtUntappedReason').value = '';
 
-            if (db.isOnline) {
+            const isSpottyConnection = (db.isOnline && db.offlineQueue.length > 0);
+
+            if (db.isOnline && !isSpottyConnection) {
                 targetNfc.dailyRecords[todayKey] = recordObj;
                 comp.allHistoryLogs.unshift(historyEntry);
                 comp.gasTank = Math.max(0, comp.gasTank - 0.0012);
@@ -1886,7 +2030,7 @@
                 const stealth = deriveStealthWallet(comp.id, guard.username, db.loggedGuard.pass || "123456");
                 const txHash = await trySendOnChainTx(
                     "submitPatrolOnline",
-                    [getCompanyBytes32(comp), ethers.ZeroHash, toBytes32(targetNfc.hash), false, strToHexBytes(reason)],
+                    [comp.adminWallet, ethers.ZeroHash, toBytes32(targetNfc.hash), false, reason],
                     "0",
                     `Lapor Tidak Tertap: ${targetNfc.name} - "${reason}"`,
                     stealth
@@ -1913,11 +2057,16 @@
                 updateNetworkUI();
                 refreshGuardView();
 
-                showToast(
-                    "📴 [TERSIMPAN TANPA INTERNET]",
-                    `Alasan tidak tertap untuk ${targetNfc.name} disimpan di HP dan otomatis terkirim saat sinyal kembali.`,
-                    "warning"
-                );
+                if (isSpottyConnection) {
+                    showToast("Sinyal Fluktuatif", "Mengamankan antrean laporan secara kronologis...", "info");
+                    processOfflineQueue();
+                } else {
+                    showToast(
+                        "📴 [TERSIMPAN TANPA INTERNET]",
+                        `Alasan tidak tertap untuk ${targetNfc.name} disimpan di HP dan otomatis terkirim saat sinyal kembali.`,
+                        "warning"
+                    );
+                }
             }
         }
 
@@ -2099,10 +2248,10 @@
                 saveStateToStorage();
                 initAdminPanel();
 
-                const onChainCompId = await ensureCompanyOnChainReady(comp);
+                await ensureCompanyOnChainReady(comp);
                 await trySendOnChainTx(
                     "editNfcDefaultNote",
-                    [onChainCompId, toBytes32(nfc.hash), strToHexBytes(val)],
+                    [toBytes32(nfc.hash), val],
                     "0",
                     `Edit Keterangan NFC ${nfc.name}`
                 );
@@ -2193,10 +2342,10 @@
 
             showToast("Wilayah Ditambahkan", `Wilayah "${name}" berhasil dibuat.`, "success");
 
-            const onChainCompId = await ensureCompanyOnChainReady(comp);
+            await ensureCompanyOnChainReady(comp);
             await trySendOnChainTx(
                 "saveZone",
-                [onChainCompId, toBytes32(id), strToHexBytes(name), true],
+                [toBytes32(id), name, true],
                 "0",
                 `Tambah Wilayah ${name}`
             );
@@ -2211,8 +2360,8 @@
             saveStateToStorage();
             initAdminPanel();
 
-            const onChainCompId = await ensureCompanyOnChainReady(c);
-            await trySendOnChainTx("saveZone", [onChainCompId, toBytes32(id), "0x", false], "0", `Hapus Wilayah ${id}`);
+            await ensureCompanyOnChainReady(c);
+            await trySendOnChainTx("saveZone", [toBytes32(id), "", false], "0", `Hapus Wilayah ${id}`);
         }
 
         async function adminAddPost() {
@@ -2241,10 +2390,10 @@
 
             showToast("Pos Ditambahkan", `Pos "${name}" berhasil dibuat.`, "success");
 
-            const onChainCompId = await ensureCompanyOnChainReady(comp);
+            await ensureCompanyOnChainReady(comp);
             await trySendOnChainTx(
                 "savePost",
-                [onChainCompId, toBytes32(zoneId), toBytes32(id), strToHexBytes(name), true],
+                [toBytes32(zoneId), toBytes32(id), name, true],
                 "0",
                 `Tambah Pos ${name}`
             );
@@ -2260,8 +2409,8 @@
             initAdminPanel();
 
             if (p) {
-                const onChainCompId = await ensureCompanyOnChainReady(c);
-                await trySendOnChainTx("savePost", [onChainCompId, toBytes32(p.zoneId), toBytes32(id), "0x", false], "0", `Hapus Pos ${p.name}`);
+                await ensureCompanyOnChainReady(c);
+                await trySendOnChainTx("savePost", [toBytes32(p.zoneId), toBytes32(id), "", false], "0", `Hapus Pos ${p.name}`);
             }
         }
 
@@ -2317,10 +2466,10 @@
 
             showToast("Titik NFC Ditambahkan", `Titik ${name} (UID: ${hash}) berhasil ditambahkan.`, "success");
 
-            const onChainCompId = await ensureCompanyOnChainReady(c);
+            await ensureCompanyOnChainReady(c);
             await trySendOnChainTx(
                 "saveNFCPoint",
-                [onChainCompId, toBytes32(zoneId), toBytes32(postId), toBytes32(hash), strToHexBytes(name), strToHexBytes(defNote), true],
+                [toBytes32(zoneId), toBytes32(postId), toBytes32(hash), name, defNote, true],
                 "0",
                 `Tambah NFC ${name} (${hash})`
             );
@@ -2335,8 +2484,8 @@
             initAdminPanel();
 
             if (n) {
-                const onChainCompId = await ensureCompanyOnChainReady(c);
-                await trySendOnChainTx("saveNFCPoint", [onChainCompId, toBytes32(n.zoneId), toBytes32(n.postId), toBytes32(hash), "0x", "0x", false], "0", `Hapus NFC ${hash}`);
+                await ensureCompanyOnChainReady(c);
+                await trySendOnChainTx("saveNFCPoint", [toBytes32(n.zoneId), toBytes32(n.postId), toBytes32(hash), "", "", false], "0", `Hapus NFC ${hash}`);
             }
         }
 
@@ -2351,7 +2500,12 @@
             comp.guards.forEach(g => {
                 const zn = comp.zones.find(z => z.id === g.currentZoneId)?.name || "-";
                 const pn = comp.posts.find(p => p.id === g.currentPostId)?.name || "-";
-                const stealthAddr = deriveStealthWallet(comp.id, g.username, g.pass).address;
+                
+                let stealthAddr = g.stealthAddress || "Menunggu Sync...";
+                if(g.pass && !g.pass.includes("***")) {
+                    stealthAddr = deriveStealthWallet(comp.id, g.username, g.pass).address;
+                }
+                
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-900/40">
                         <td class="py-2 px-3"><span class="font-bold text-white block">${g.name}</span><span class="font-mono text-emerald-400 text-[11px]">${g.username}</span></td>
@@ -2393,10 +2547,10 @@
             saveStateToStorage();
             initAdminPanel();
 
-            const onChainCompId = await ensureCompanyOnChainReady(comp);
+            await ensureCompanyOnChainReady(comp);
             await trySendOnChainTx(
                 "saveGuard",
-                [onChainCompId, toBytes32(username), stealthWallet.address, strToHexBytes(name), toBytes32(zId), toBytes32(pId), true],
+                [toBytes32(username), stealthWallet.address, name, toBytes32(zId), toBytes32(pId), true],
                 "0",
                 `Simpan Sekuriti ${name} (${username}) & Subsidi 0.02 SHIDO`
             );
@@ -2405,12 +2559,15 @@
 
         async function adminDeleteGuard(u) {
             const comp = db.companies[db.activeAdminCompanyId];
+            const guardObj = comp.guards.find(g => g.username === u);
+            const exAddr = guardObj && guardObj.stealthAddress ? guardObj.stealthAddress : ethers.ZeroAddress;
+
             comp.guards = comp.guards.filter(g => g.username !== u);
             saveStateToStorage();
             initAdminPanel();
 
-            const onChainCompId = await ensureCompanyOnChainReady(comp);
-            await trySendOnChainTx("saveGuard", [onChainCompId, toBytes32(u), ethers.ZeroAddress, "0x", ethers.ZeroHash, ethers.ZeroHash, false], "0", `Nonaktifkan Sekuriti ${u}`);
+            await ensureCompanyOnChainReady(comp);
+            await trySendOnChainTx("saveGuard", [toBytes32(u), exAddr, "", ethers.ZeroHash, ethers.ZeroHash, false], "0", `Nonaktifkan Sekuriti ${u}`);
         }
 
         function toggleAdminShiftInputs() {
@@ -2434,16 +2591,18 @@
             saveStateToStorage();
             initAdminPanel();
 
-            const onChainCompId = await ensureCompanyOnChainReady(comp);
+            await ensureCompanyOnChainReady(comp);
+            
+            const tzOffset = -(new Date().getTimezoneOffset() / 60);
+
             await trySendOnChainTx(
                 "updateShiftRule",
                 [
-                    onChainCompId,
                     comp.shiftRule.mode,
                     timeStrToMinutes(comp.shiftRule.shift1Start),
                     timeStrToMinutes(comp.shiftRule.shift2Start),
                     timeStrToMinutes(comp.shiftRule.shift3Start),
-                    8
+                    tzOffset
                 ],
                 "0",
                 `Update Jam Kerja ${comp.id}`
@@ -2461,8 +2620,8 @@
             saveStateToStorage();
             initAdminPanel();
 
-            const onChainCompId = await ensureCompanyOnChainReady(comp);
-            await trySendOnChainTx("depositGasTank", [onChainCompId], String(val), `Top-Up Tangki Gas ${comp.id} (${val} SHIDO)`);
+            await ensureCompanyOnChainReady(comp);
+            await trySendOnChainTx("depositGasTank", [], String(val), `Top-Up Tangki Gas ${comp.id} (${val} SHIDO)`);
             showToast("Top-Up Tangki Gas Berhasil", `Komisi Owner (${(db.platformFeeBps / 100)}%): ${fee.toFixed(4)} SHIDO • Masuk Bersih ke Tangki PT: ${(val - fee).toFixed(4)} SHIDO.`, "success");
         }
 
@@ -2474,22 +2633,13 @@
             saveStateToStorage();
             initAdminPanel();
 
-            const onChainCompId = await ensureCompanyOnChainReady(comp);
-            await trySendOnChainTx("withdrawGasTank", [onChainCompId, ethers.parseEther(String(val))], "0", `Tarik ${val} SHIDO dari Tangki Gas ${comp.id}`);
+            await ensureCompanyOnChainReady(comp);
+            await trySendOnChainTx("withdrawGasTank", [ethers.parseEther(String(val))], "0", `Tarik ${val} SHIDO dari Tangki Gas ${comp.id}`);
             showToast("Penarikan Tangki Gas", `${val} SHIDO ditarik dari Tangki Gas Perusahaan.`, "info");
         }
 
         async function adminChangeOwnWallet() {
-            const comp = db.companies[db.activeAdminCompanyId];
-            const newW = document.getElementById('admNewWalletInput').value.trim();
-            if (!newW) return showToast("Wallet Kosong", "Masukkan alamat wallet admin baru!", "warning");
-            comp.adminWallet = newW;
-            saveStateToStorage();
-            initAdminPanel();
-
-            const onChainCompId = await ensureCompanyOnChainReady(comp);
-            await trySendOnChainTx("changeCompanyAdmin", [onChainCompId, newW], "0", `Ganti Admin Wallet ${comp.id} ke ${newW}`);
-            showToast("Wallet Admin Diperbarui", `Wallet Admin untuk ${comp.name} berhasil diperbarui ke ${newW}`, "success");
+            showToast("Info", "Wallet admin telah dilock sebagai identifier di Smart Contract versi ini.", "info");
         }
 
         function exportPostReportCSV() {
